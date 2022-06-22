@@ -1,12 +1,12 @@
 package httpaction
 
 import (
-	"boilerplate/internal/framework"
-	validator "boilerplate/internal/ozzo-validator"
-	"boilerplate/internal/user/dto"
-	actionError "boilerplate/internal/user/httpaction/errors"
-	"boilerplate/internal/user/storage"
 	"context"
+	"demo/internal/framework"
+	validator "demo/internal/ozzo-validator"
+	"demo/internal/user/dto"
+	actionError "demo/internal/user/httpaction/errors"
+	"demo/internal/user/storage"
 	"errors"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"

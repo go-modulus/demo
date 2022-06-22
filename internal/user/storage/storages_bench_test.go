@@ -1,12 +1,12 @@
 package storage_test
 
 import (
-	graphInit "boilerplate/internal/graph"
-	"boilerplate/internal/pgx"
-	"boilerplate/internal/user"
-	"boilerplate/internal/user/dao"
-	"boilerplate/internal/user/storage"
 	"context"
+	graphInit "demo/internal/graph"
+	"demo/internal/pgx"
+	"demo/internal/user"
+	"demo/internal/user/dao"
+	"demo/internal/user/storage"
 	application "github.com/debugger84/modulus-application"
 	db "github.com/debugger84/modulus-db-pg-gorm"
 	graphql "github.com/debugger84/modulus-graphql"

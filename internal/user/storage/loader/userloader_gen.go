@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"boilerplate/internal/user/storage"
+	"demo/internal/user/storage"
 
 	"github.com/google/uuid"
 )

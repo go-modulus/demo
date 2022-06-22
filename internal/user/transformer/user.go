@@ -1,8 +1,8 @@
 package transformer
 
 import (
-	"boilerplate/internal/graph/model"
-	"boilerplate/internal/user/storage"
+	"demo/internal/graph/model"
+	"demo/internal/user/storage"
 	"encoding/base64"
 	"encoding/json"
 	"time"

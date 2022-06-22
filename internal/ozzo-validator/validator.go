@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"boilerplate/internal/framework"
+	"demo/internal/framework"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 

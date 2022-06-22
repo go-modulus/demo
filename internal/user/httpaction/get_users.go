@@ -1,10 +1,10 @@
 package httpaction
 
 import (
-	"boilerplate/internal/framework"
-	validator "boilerplate/internal/ozzo-validator"
-	"boilerplate/internal/user/dao"
 	"context"
+	"demo/internal/framework"
+	validator "demo/internal/ozzo-validator"
+	"demo/internal/user/dao"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
 )

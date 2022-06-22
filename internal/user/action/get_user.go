@@ -1,10 +1,10 @@
 package action
 
 import (
-	"boilerplate/internal/framework"
-	actionError "boilerplate/internal/user/action/errors"
-	"boilerplate/internal/user/dao"
 	"context"
+	"demo/internal/framework"
+	actionError "demo/internal/user/action/errors"
+	"demo/internal/user/dao"
 	application "github.com/debugger84/modulus-application"
 	"github.com/go-chi/chi/v5"
 )

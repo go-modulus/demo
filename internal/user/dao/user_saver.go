@@ -1,9 +1,9 @@
 package dao
 
 import (
-	"boilerplate/internal/user/dao/query"
-	"boilerplate/internal/user/dto"
 	"context"
+	"demo/internal/user/dao/query"
+	"demo/internal/user/dto"
 	"gorm.io/gorm"
 )
 

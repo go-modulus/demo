@@ -1,8 +1,8 @@
 package pgx
 
 import (
-	"boilerplate/internal/framework"
 	"context"
+	"demo/internal/framework"
 	"github.com/jackc/pgx/v4"
 	"time"
 )

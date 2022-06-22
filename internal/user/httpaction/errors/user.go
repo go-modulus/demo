@@ -1,8 +1,8 @@
 package errors
 
 import (
-	"boilerplate/internal/framework"
 	"context"
+	"demo/internal/framework"
 	"errors"
 	"fmt"
 )

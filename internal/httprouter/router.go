@@ -1,8 +1,8 @@
 package router
 
 import (
-	"boilerplate/internal/framework"
 	"context"
+	"demo/internal/framework"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"net/url"

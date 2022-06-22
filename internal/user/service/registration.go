@@ -1,10 +1,10 @@
 package service
 
 import (
-	"boilerplate/internal/framework"
-	"boilerplate/internal/user/dao"
-	"boilerplate/internal/user/storage"
 	"context"
+	"demo/internal/framework"
+	"demo/internal/user/dao"
+	"demo/internal/user/storage"
 	application "github.com/debugger84/modulus-application"
 	"github.com/gofrs/uuid"
 	guid "github.com/google/uuid"

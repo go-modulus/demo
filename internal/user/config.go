@@ -1,13 +1,13 @@
 package user
 
 import (
-	"boilerplate/internal/framework"
-	"boilerplate/internal/user/action"
-	"boilerplate/internal/user/dao"
-	"boilerplate/internal/user/httpaction"
-	"boilerplate/internal/user/service"
-	"boilerplate/internal/user/storage"
-	"boilerplate/internal/user/storage/loader"
+	"demo/internal/framework"
+	"demo/internal/user/action"
+	"demo/internal/user/dao"
+	"demo/internal/user/httpaction"
+	"demo/internal/user/service"
+	"demo/internal/user/storage"
+	"demo/internal/user/storage/loader"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.uber.org/fx"

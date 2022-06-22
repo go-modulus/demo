@@ -1,8 +1,8 @@
 package router
 
 import (
-	"boilerplate/internal/framework"
 	"context"
+	"demo/internal/framework"
 	"fmt"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"

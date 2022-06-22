@@ -1,10 +1,10 @@
 package action
 
 import (
-	"boilerplate/internal/framework"
-	"boilerplate/internal/user/service"
-	"boilerplate/internal/user/storage"
 	"context"
+	"demo/internal/framework"
+	"demo/internal/user/service"
+	"demo/internal/user/storage"
 	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"

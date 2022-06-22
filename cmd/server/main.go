@@ -1,12 +1,12 @@
 package main
 
 import (
-	"boilerplate/internal/cache"
-	"boilerplate/internal/framework"
-	router "boilerplate/internal/httprouter"
-	"boilerplate/internal/logger"
-	"boilerplate/internal/pgx"
-	"boilerplate/internal/user"
+	"demo/internal/cache"
+	"demo/internal/framework"
+	router "demo/internal/httprouter"
+	"demo/internal/logger"
+	"demo/internal/pgx"
+	"demo/internal/user"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"

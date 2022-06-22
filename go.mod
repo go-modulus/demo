@@ -1,4 +1,4 @@
-module boilerplate
+module demo
 
 go 1.18
 

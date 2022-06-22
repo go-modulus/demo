@@ -1,10 +1,10 @@
 package dao
 
 import (
-	"boilerplate/internal/framework"
-	userQuery "boilerplate/internal/user/dao/query"
-	"boilerplate/internal/user/dto"
 	"context"
+	"demo/internal/framework"
+	userQuery "demo/internal/user/dao/query"
+	"demo/internal/user/dto"
 	"gorm.io/gorm"
 )
 

@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"boilerplate/internal/framework"
 	"context"
+	"demo/internal/framework"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )

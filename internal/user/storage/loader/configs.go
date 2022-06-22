@@ -1,9 +1,9 @@
 package loader
 
 import (
-	"boilerplate/internal/cache"
-	"boilerplate/internal/user/storage"
 	"context"
+	"demo/internal/cache"
+	"demo/internal/user/storage"
 	"github.com/google/uuid"
 	"time"
 )
