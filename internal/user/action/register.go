@@ -2,8 +2,8 @@ package action
 
 import (
 	"boilerplate/internal/framework"
-	"boilerplate/internal/user/dto"
 	"boilerplate/internal/user/service"
+	"boilerplate/internal/user/storage"
 	"context"
 	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
@@ -39,17 +39,19 @@ func (a *RegisterAction) Register(chi chi.Router, errorHandler *framework.HttpEr
 }
 
 func (a *RegisterAction) Handle(ctx context.Context, req *RegisterRequest) (*application.ActionResponse, error) {
-	user := dto.User{
+	user := storage.CreateUserParams{
 		Name:  req.Name,
 		Email: req.Email,
 	}
 	result, err := a.registration.Register(ctx, user)
 	if err != nil {
-		return application.NewUnprocessableEntityResponse(ctx, err), nil
+		r := application.NewUnprocessableEntityResponse(ctx, err)
+		return &r, nil
 	}
-	return application.NewSuccessCreationResponse(
+	r := application.NewSuccessCreationResponse(
 		RegisterResponse{
-			Id: result.Id,
+			Id: result.ID.String(),
 		},
-	), nil
+	)
+	return &r, nil
 }

@@ -125,13 +125,9 @@ func (z ZapLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql st
 var _ logger.Interface = ZapLogger{}
 
 type GormConfig struct {
-	Host                 string `mapstructure:"GORM_HOST"`
-	Port                 int
-	User                 string `mapstructure:"GORM_USER"`
-	Pass                 string `mapstructure:"GORM_PASS"`
-	DbName               string `mapstructure:"GORM_DB"`
-	SslMode              string
-	PreferSimpleProtocol bool
+	Dsn                  string `mapstructure:"GORM_DSN"`
+	PreferSimpleProtocol bool   `mapstructure:"GORM_PREFER_SIMPLE_PROTOCOL"`
+	SlowQueryMs          int    `mapstructure:"GORM_SLOW_QUERY_LOGGING_LIMIT"`
 }
 
 func NewGorm(
@@ -140,9 +136,6 @@ func NewGorm(
 	errorHandler *ErrorHandler,
 ) (*gorm.DB, error) {
 	gormConfig := &GormConfig{
-		Host:                 "localhost",
-		Port:                 5432,
-		SslMode:              "disable",
 		PreferSimpleProtocol: true,
 	}
 
@@ -155,15 +148,7 @@ func NewGorm(
 	db, err := gorm.Open(
 		postgres.New(
 			postgres.Config{
-				DSN: fmt.Sprintf(
-					"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
-					gormConfig.Host,
-					gormConfig.Port,
-					gormConfig.User,
-					gormConfig.DbName,
-					gormConfig.Pass,
-					gormConfig.SslMode,
-				),
+				DSN:                  gormConfig.Dsn,
 				PreferSimpleProtocol: gormConfig.PreferSimpleProtocol,
 			},
 		),
@@ -171,7 +156,7 @@ func NewGorm(
 			PrepareStmt: false,
 			Logger: NewZapLogger(
 				originalLogger,
-				100*time.Millisecond,
+				time.Duration(gormConfig.SlowQueryMs)*time.Millisecond,
 			),
 		},
 	)
@@ -180,11 +165,13 @@ func NewGorm(
 		return nil, err
 	}
 
-	errorHandler.AttachFilter(func(_ context.Context, err error) bool {
-		_, ok := err.(*GormError)
+	errorHandler.AttachFilter(
+		func(_ context.Context, err error) bool {
+			_, ok := err.(*GormError)
 
-		return ok == false
-	})
+			return ok == false
+		},
+	)
 
 	return db, nil
 }
@@ -193,5 +180,6 @@ func GormModule() fx.Option {
 	return fx.Module(
 		"gorm",
 		fx.Provide(NewGorm),
+		fx.Invoke(NewGorm),
 	)
 }

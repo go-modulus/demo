@@ -48,7 +48,10 @@ func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (*app
 		response[i] = UserResponse{Id: user.Id, Name: user.Name}
 	}
 
-	return application.NewSuccessResponse(UsersResponse{
-		List: response,
-	}), nil
+	r := application.NewSuccessResponse(
+		UsersResponse{
+			List: response,
+		},
+	)
+	return &r, nil
 }

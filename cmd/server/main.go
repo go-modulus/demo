@@ -2,6 +2,9 @@ package main
 
 import (
 	"boilerplate/internal/framework"
+	router "boilerplate/internal/httprouter"
+	"boilerplate/internal/logger"
+	"boilerplate/internal/pgx"
 	"boilerplate/internal/user"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -12,9 +15,11 @@ func main() {
 	app := fx.New(
 		framework.ConfigModule(),
 		framework.ErrorsModule(),
-		framework.LoggerModule(),
+		logger.NewZapLoggerModule(),
 		framework.HttpModule(),
 		framework.GormModule(),
+		pgx.PgxModule(pgx.ModuleConfig{}),
+		router.HttpRouterModule(router.ModuleConfig{}),
 		user.UserPlugin(),
 		fx.WithLogger(
 			func(logger *zap.Logger) fxevent.Logger {
