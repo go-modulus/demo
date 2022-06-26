@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	CorrelationIdKey = "X-Correlation-ID"
+	CorrelationIdKey    = "correlationId"
+	CorrelationIdHeader = "X-Correlation-ID"
 )
 
 type CorrelationIdMiddleware struct{}
@@ -33,7 +34,7 @@ func NewCorrelationIdMiddleware(rootEnricher *logger.RootEnricher) *CorrelationI
 func (CorrelationIdMiddleware) Next(next http.RequestHandler) http.RequestHandler {
 	return http.RequestHandlerFunc(
 		func(w oHttp.ResponseWriter, req *oHttp.Request) error {
-			correlationId := req.Header.Get(CorrelationIdKey)
+			correlationId := req.Header.Get(CorrelationIdHeader)
 
 			if correlationId == "" {
 				id, err := uuid.NewV4()
@@ -50,7 +51,7 @@ func (CorrelationIdMiddleware) Next(next http.RequestHandler) http.RequestHandle
 				correlationId,
 			)
 
-			w.Header().Set(CorrelationIdKey, correlationId)
+			w.Header().Set(CorrelationIdHeader, correlationId)
 
 			return next.Handle(w, req.WithContext(ctx))
 		},

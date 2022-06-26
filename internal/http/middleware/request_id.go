@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	RequestIdKey = "X-Request-ID"
+	RequestIdKey    = "requestId"
+	RequestIdHeader = "X-Request-ID"
 )
 
 type RequestIdMiddleware struct {
@@ -46,7 +47,7 @@ func (RequestIdMiddleware) Next(next http.RequestHandler) http.RequestHandler {
 				requestId,
 			)
 
-			w.Header().Set(RequestIdKey, requestId)
+			w.Header().Set(RequestIdHeader, requestId)
 
 			return next.Handle(w, req.WithContext(ctx))
 		},
