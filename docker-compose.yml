@@ -1,0 +1,26 @@
+version: '3.3'
+
+volumes:
+  postgres:
+
+services:
+  demo:
+    build: .
+    ports:
+      - 8080:8080
+      - 8088:8088
+    volumes:
+      - .:/go/src/app
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:14-alpine
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: modulus
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: demo
+    ports:
+      - 5432:5432
+    restart: unless-stopped
