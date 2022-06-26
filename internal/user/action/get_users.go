@@ -4,7 +4,6 @@ import (
 	"context"
 	"demo/internal/framework"
 	"demo/internal/user/dao"
-	application "github.com/debugger84/modulus-application"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -35,7 +34,7 @@ func (a *GetUsersAction) Register(chi chi.Router, errorHandler *framework.HttpEr
 	return nil
 }
 
-func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (*application.ActionResponse, error) {
+func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (*framework.ActionResponse, error) {
 	query := a.finder.CreateQuery(ctx)
 	query.NewerFirst()
 	users, err := a.finder.ListByQuery(query, req.Count)
@@ -48,10 +47,9 @@ func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (*app
 		response[i] = UserResponse{Id: user.Id, Name: user.Name}
 	}
 
-	r := application.NewSuccessResponse(
+	return framework.NewSuccessResponse(
 		UsersResponse{
 			List: response,
 		},
-	)
-	return &r, nil
+	), nil
 }

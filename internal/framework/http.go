@@ -2,16 +2,14 @@ package framework
 
 import (
 	"context"
+	"demo/internal/errors"
 	"encoding/json"
-	"errors"
-	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"net/http"
-	"reflect"
 )
 
 type HttpConfig struct {
@@ -19,10 +17,10 @@ type HttpConfig struct {
 }
 
 type HttpErrorHandler struct {
-	baseHandler *ErrorHandler
+	baseHandler *errors.ErrorHandler
 }
 
-func NewHttpErrorHandler(baseHandler *ErrorHandler) *HttpErrorHandler {
+func NewHttpErrorHandler(baseHandler *errors.ErrorHandler) *HttpErrorHandler {
 	return &HttpErrorHandler{baseHandler: baseHandler}
 }
 
@@ -94,42 +92,15 @@ func NewChi(
 }
 
 type Handler[R any] interface {
-	Handle(ctx context.Context, req R) (*application.ActionResponse, error)
+	Handle(ctx context.Context, req R) (*ActionResponse, error)
 }
 
 func WrapHandler[R any](
 	errorHandler *HttpErrorHandler,
 	handler Handler[R],
 ) (http.HandlerFunc, error) {
-	method, ok := reflect.TypeOf(handler).MethodByName("Handle")
-	if !ok {
-		return nil, errors.New("invalid handler: can`t find Handle method")
-	}
-
-	methodType := method.Type
-
-	numArgs := methodType.NumIn()
-	if methodType.IsVariadic() {
-		return nil, errors.New("invalid handler: variadic functions isn`t supported")
-	}
-	if numArgs != 3 {
-		return nil, errors.New("invalid handler: invalid signature")
-	}
-
-	ctxArg := methodType.In(1)
-	if ctxArg.String() != "context.Context" {
-		return nil, errors.New("invalid handler: first arg must be context.Context")
-	}
-
-	reqArg := methodType.In(2)
-	if reqArg.Kind() == reflect.Ptr {
-		reqArg = reqArg.Elem()
-	}
-	if reqArg.Kind() != reflect.Struct {
-		return nil, errors.New("invalid handler: second arg must be struct")
-	}
-
-	engine, err := httpin.New(reflect.New(reqArg).Interface())
+	var request R
+	engine, err := httpin.New(request)
 	if err != nil {
 		return nil, err
 	}
@@ -156,14 +127,7 @@ func WrapHandler[R any](
 
 		w.WriteHeader(res.StatusCode)
 
-		r, err := json.Marshal(res)
-
-		if err != nil {
-			errorHandler.Handle(err, w, req)
-			return
-		}
-
-		_, err = w.Write(r)
+		err = json.NewEncoder(w).Encode(res.Response)
 		if err != nil {
 			errorHandler.Handle(err, w, req)
 			return

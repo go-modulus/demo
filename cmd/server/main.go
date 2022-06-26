@@ -2,6 +2,7 @@ package main
 
 import (
 	"demo/internal/cache"
+	"demo/internal/errors"
 	"demo/internal/framework"
 	router "demo/internal/httprouter"
 	"demo/internal/logger"
@@ -15,7 +16,7 @@ import (
 func main() {
 	app := fx.New(
 		framework.ConfigModule(),
-		framework.ErrorsModule(),
+		errors.Module(),
 		logger.NewModule(),
 		framework.HttpModule(),
 		framework.GormModule(),

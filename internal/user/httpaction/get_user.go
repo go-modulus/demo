@@ -2,20 +2,19 @@ package httpaction
 
 import (
 	"context"
+	"demo/internal/errors"
 	"demo/internal/framework"
-	validator "demo/internal/ozzo-validator"
+	pgx2 "demo/internal/pgx"
 	"demo/internal/user/dto"
-	actionError "demo/internal/user/httpaction/errors"
+	userErrors "demo/internal/user/errors"
 	"demo/internal/user/storage"
-	"errors"
+	"demo/internal/validator"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 )
 
-const DbError framework.ErrorIdentifier = "DbError"
-
-func (u *GetUserRequest) Validate(ctx context.Context) []framework.ValidationError {
+func (u *GetUserRequest) Validate(ctx context.Context) *validator.ValidationError {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		u,
@@ -25,7 +24,11 @@ func (u *GetUserRequest) Validate(ctx context.Context) []framework.ValidationErr
 		),
 	)
 
-	return validator.AsAppValidationErrors(err)
+	if err != nil {
+		return validator.FromOzzoError(err)
+	}
+
+	return nil
 }
 
 type GetUser struct {
@@ -41,13 +44,13 @@ func (a *GetUser) Process(ctx context.Context, request *GetUserRequest) framewor
 	user, err := a.finder.GetUser(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return actionError.UserNotFound(ctx, request.Id)
-		} else {
-			return framework.NewServerErrorResponse(ctx, DbError, err)
+			return *framework.NewServerErrorResponse(*userErrors.NewUserNotFound(request.Id))
 		}
+		return *framework.NewServerErrorResponse(*pgx2.NewPgxError(err))
 	}
+
 	var response dto.User
 	response.Id = request.Id
 	response.Name = user.Name
-	return framework.NewSuccessResponse(response)
+	return *framework.NewSuccessResponse(response)
 }

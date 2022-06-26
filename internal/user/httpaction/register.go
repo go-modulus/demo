@@ -2,11 +2,12 @@ package httpaction
 
 import (
 	"context"
+	"demo/internal/errors"
 	"demo/internal/framework"
-	validator "demo/internal/ozzo-validator"
 	"demo/internal/user/dto"
 	"demo/internal/user/service"
 	"demo/internal/user/storage"
+	"demo/internal/validator"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
 )
@@ -16,7 +17,7 @@ type RegisterRequest struct {
 	Email string `json:"email"`
 }
 
-func (r *RegisterRequest) Validate(ctx context.Context) []framework.ValidationError {
+func (r *RegisterRequest) Validate(ctx context.Context) *validator.ValidationError {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		r,
@@ -27,7 +28,11 @@ func (r *RegisterRequest) Validate(ctx context.Context) []framework.ValidationEr
 		validation.Field(&r.Email, dto.EmailRules()...),
 	)
 
-	return validator.AsAppValidationErrors(err)
+	if err != nil {
+		return validator.FromOzzoError(err)
+	}
+
+	return nil
 }
 
 type RegisterResponse struct {
@@ -45,9 +50,12 @@ func NewRegisterAction(runner *framework.ActionRunner, registration *service.Reg
 
 func (a *RegisterAction) Handle(w http.ResponseWriter, r *http.Request) {
 	a.runner.Run(
-		w, r, func(ctx context.Context, request any) framework.ActionResponse {
+		w,
+		r,
+		func(ctx context.Context, request any) framework.ActionResponse {
 			return a.process(ctx, request.(*RegisterRequest))
-		}, &RegisterRequest{},
+		},
+		&RegisterRequest{},
 	)
 }
 
@@ -58,9 +66,10 @@ func (a *RegisterAction) process(ctx context.Context, request *RegisterRequest) 
 	}
 	result, err := a.registration.Register(ctx, user)
 	if err != nil {
-		return framework.NewUnprocessableEntityResponse(ctx, err)
+		return *framework.NewServerErrorResponse(*errors.FromError(err))
 	}
-	return framework.NewSuccessCreationResponse(
+
+	return *framework.NewSuccessCreationResponse(
 		RegisterResponse{
 			Id: result.ID.String(),
 		},

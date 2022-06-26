@@ -3,9 +3,8 @@ package action
 import (
 	"context"
 	"demo/internal/framework"
-	"demo/internal/user/action/errors"
 	"demo/internal/user/dao"
-	application "github.com/debugger84/modulus-application"
+	"demo/internal/user/errors"
 	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -46,22 +45,21 @@ func (a *UpdateAction) Register(chi chi.Router, errorHandler *framework.HttpErro
 	return nil
 }
 
-func (a *UpdateAction) Handle(ctx context.Context, request *UpdateRequest) (*application.ActionResponse, error) {
+func (a *UpdateAction) Handle(ctx context.Context, request *UpdateRequest) (*framework.ActionResponse, error) {
 	user, _ := a.finder.One(ctx, request.Id)
 	if user == nil {
-		return errors.UserNotFound(ctx, request.Id), nil
+		return nil, errors.NewUserNotFound(request.Id)
 	}
 	user.Name = request.Name
 	err := a.saver.Update(ctx, *user)
 	if err != nil {
-		a.logger.Error("error during user update", zap.Error(err))
-		return errors.CannotUpdateUser(ctx, request.Id), nil
+		return nil, err
 	}
-	r := application.NewSuccessResponse(
+
+	return framework.NewSuccessResponse(
 		UpdateResponse{
 			Id:   request.Id,
 			Name: user.Name,
 		},
-	)
-	return &r, nil
+	), nil
 }

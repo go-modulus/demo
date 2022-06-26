@@ -1,23 +1,10 @@
-package framework
+package errors
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"go.uber.org/fx"
 )
-
-type Error struct {
-	Message string
-	Code    string
-}
-
-func (e *Error) Error() string {
-	return e.Message
-}
-
-type BusinessLogicError struct {
-	Error
-}
 
 type ErrorFilter func(ctx context.Context, err error) bool
 type ErrorListener func(ctx context.Context, err error) error
@@ -28,7 +15,24 @@ type ErrorHandler struct {
 }
 
 func NewErrorHandler() *ErrorHandler {
-	return &ErrorHandler{}
+	eh := &ErrorHandler{}
+
+	eh.AttachFilter(func(ctx context.Context, err error) bool {
+		is := errors.Is(
+			context.Canceled,
+			err,
+		)
+		if is {
+			return false
+		}
+
+		return false == errors.Is(
+			context.DeadlineExceeded,
+			err,
+		)
+	})
+
+	return eh
 }
 
 func (h *ErrorHandler) AttachFilter(filter ErrorFilter) {
@@ -55,11 +59,4 @@ func (h *ErrorHandler) Handle(ctx context.Context, err error) {
 			panic(fmt.Errorf("cannot handle error: %w", err))
 		}
 	}
-}
-
-func ErrorsModule() fx.Option {
-	return fx.Module(
-		"errors",
-		fx.Provide(NewErrorHandler),
-	)
 }

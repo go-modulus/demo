@@ -3,9 +3,8 @@ package action
 import (
 	"context"
 	"demo/internal/framework"
-	actionError "demo/internal/user/action/errors"
 	"demo/internal/user/dao"
-	application "github.com/debugger84/modulus-application"
+	"demo/internal/user/errors"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -37,18 +36,17 @@ func (a *GetUserAction) Register(chi chi.Router, errorHandler *framework.HttpErr
 	return nil
 }
 
-func (a *GetUserAction) Handle(ctx context.Context, request *GetUserRequest) (*application.ActionResponse, error) {
+func (a *GetUserAction) Handle(ctx context.Context, request *GetUserRequest) (*framework.ActionResponse, error) {
 	user, err := a.finder.One(ctx, request.Id)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		return actionError.UserNotFound(ctx, request.Id), nil
+		return nil, errors.NewUserNotFound(request.Id)
 	}
+
 	var response UserResponse
 	response.Id = request.Id
 	response.Name = user.Name
-
-	r := application.NewSuccessResponse(response)
-	return &r, nil
+	return framework.NewSuccessResponse(response), nil
 }

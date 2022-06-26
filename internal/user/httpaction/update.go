@@ -2,15 +2,16 @@ package httpaction
 
 import (
 	"context"
+	"demo/internal/errors"
 	"demo/internal/framework"
-	validator "demo/internal/ozzo-validator"
 	"demo/internal/user/dao"
 	"demo/internal/user/dto"
-	"demo/internal/user/httpaction/errors"
+	userErrors "demo/internal/user/errors"
+	"demo/internal/validator"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (u *UpdateRequest) Validate(ctx context.Context) []framework.ValidationError {
+func (u *UpdateRequest) Validate(ctx context.Context) *validator.ValidationError {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		u,
@@ -24,7 +25,11 @@ func (u *UpdateRequest) Validate(ctx context.Context) []framework.ValidationErro
 		),
 	)
 
-	return validator.AsAppValidationErrors(err)
+	if err != nil {
+		return validator.FromOzzoError(err)
+	}
+
+	return nil
 }
 
 type Update struct {
@@ -44,15 +49,15 @@ func NewUpdateProcessor(
 func (a *Update) Process(ctx context.Context, request *UpdateRequest) framework.ActionResponse {
 	user := a.getUser(ctx, request.Id)
 	if user == nil {
-		return errors.UserNotFound(ctx, request.Id)
+		return *framework.NewServerErrorResponse(*userErrors.NewUserNotFound(request.Id))
 	}
 	user.Name = request.Name
 	err := a.saver.Update(ctx, *user)
 	if err != nil {
-		a.logger.Error(ctx, err.Error())
-		return errors.CannotUpdateUser(ctx, request.Id)
+		return *framework.NewServerErrorResponse(*errors.FromError(err))
 	}
-	return framework.NewSuccessResponse(
+
+	return *framework.NewSuccessResponse(
 		dto.User{
 			Id:   request.Id,
 			Name: user.Name,
