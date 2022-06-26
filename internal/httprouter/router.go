@@ -2,6 +2,7 @@ package router
 
 import (
 	"boilerplate/internal/framework"
+	"context"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"net/url"
@@ -30,6 +31,7 @@ func NewRouter(config *ModuleConfig, logger framework.Logger) *Router {
 
 func (r *Router) AddRoutes(routes []framework.RouteInfo) {
 	for _, info := range routes {
+		r.logger.Debug(context.Background(), info.Method()+": "+info.Path())
 		r.router.Handler(info.Method(), info.Path(), info.Handler())
 	}
 }

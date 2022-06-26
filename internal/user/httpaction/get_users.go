@@ -1,10 +1,10 @@
 package httpaction
 
 import (
+	"boilerplate/internal/framework"
+	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/dao"
 	"context"
-	application "github.com/debugger84/modulus-application"
-	validator "github.com/debugger84/modulus-validator-ozzo"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
 )
@@ -18,7 +18,7 @@ type GetUsersRequest struct {
 	Count int `json:"count" validate:"required,gte=0,lte=10"`
 }
 
-func (u *GetUsersRequest) Validate(ctx context.Context) []application.ValidationError {
+func (u *GetUsersRequest) Validate(ctx context.Context) []framework.ValidationError {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		&u,
@@ -38,35 +38,35 @@ type UsersResponse struct {
 }
 
 type GetUsersAction struct {
-	runner *application.ActionRunner
+	runner *framework.ActionRunner
 	finder *dao.UserFinder
 }
 
-func NewGetUsersAction(runner *application.ActionRunner, finder *dao.UserFinder) *GetUsersAction {
+func NewGetUsersAction(runner *framework.ActionRunner, finder *dao.UserFinder) *GetUsersAction {
 	return &GetUsersAction{runner: runner, finder: finder}
 }
 
 func (a *GetUsersAction) Handle(w http.ResponseWriter, r *http.Request) {
 	a.runner.Run(
-		w, r, func(ctx context.Context, request any) application.ActionResponse {
+		w, r, func(ctx context.Context, request any) framework.ActionResponse {
 			return a.process(ctx, request.(*GetUsersRequest))
 		}, &GetUsersRequest{},
 	)
 }
 
-func (a *GetUsersAction) process(ctx context.Context, request *GetUsersRequest) application.ActionResponse {
+func (a *GetUsersAction) process(ctx context.Context, request *GetUsersRequest) framework.ActionResponse {
 	query := a.finder.CreateQuery(ctx)
 	query.NewerFirst()
 	users, err := a.finder.ListByQuery(query, request.Count)
 	if err != nil {
-		return application.NewServerErrorResponse(ctx, DbError, err)
+		return framework.NewServerErrorResponse(ctx, DbError, err)
 	}
 	response := make([]UserResponse, len(users))
 	for i, user := range users {
 		response[i] = UserResponse{Id: user.Id, Name: user.Name}
 	}
 
-	return application.NewSuccessResponse(
+	return framework.NewSuccessResponse(
 		UsersResponse{
 			List: response,
 		},

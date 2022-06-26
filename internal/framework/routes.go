@@ -85,9 +85,7 @@ func (r *Routes) Options(path string, handler http.HandlerFunc) {
 }
 
 func (r *Routes) AddFromRoutes(routes *Routes) {
-	for name, info := range routes.routes {
-		r.routes[name] = info
-	}
+	r.routes = append(r.routes, routes.routes...)
 }
 
 func (r *Routes) GetRoutesInfo() []RouteInfo {

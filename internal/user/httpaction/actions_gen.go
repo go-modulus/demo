@@ -7,8 +7,6 @@ import (
 	"boilerplate/internal/framework"
 	"context"
 	"net/http"
-
-	application "github.com/debugger84/modulus-application"
 )
 
 // User defines model for User.
@@ -27,7 +25,7 @@ type UpdateUserBody struct {
 	Name string `json:"name"`
 }
 
-// UpdateJSONRequestBody defines body for Update for application/json ContentType.
+// UpdateJSONRequestBody defines body for Update for framework/json ContentType.
 type UpdateJSONRequestBody UpdateUserBody
 
 // ------------- Code generation for the "GetUser" -------------
@@ -36,20 +34,20 @@ type GetUserRequest struct {
 	Id UserId `json:"id"`
 }
 type GetUserAction struct {
-	runner    *application.ActionRunner
+	runner    *framework.ActionRunner
 	processor GetUserProcessor
 }
 type GetUserProcessor interface {
-	Process(ctx context.Context, request *GetUserRequest) application.ActionResponse
+	Process(ctx context.Context, request *GetUserRequest) framework.ActionResponse
 }
 
-func NewGetUserAction(runner *application.ActionRunner, processor GetUserProcessor) *GetUserAction {
+func NewGetUserAction(runner *framework.ActionRunner, processor GetUserProcessor) *GetUserAction {
 	return &GetUserAction{runner: runner, processor: processor}
 }
 
 func (a *GetUserAction) Handle(w http.ResponseWriter, r *http.Request) {
 	a.runner.Run(
-		w, r, func(ctx context.Context, request any) application.ActionResponse {
+		w, r, func(ctx context.Context, request any) framework.ActionResponse {
 			return a.processor.Process(ctx, request.(*GetUserRequest))
 		}, &GetUserRequest{},
 	)
@@ -62,20 +60,20 @@ type UpdateRequest struct {
 	UpdateUserBody
 }
 type UpdateAction struct {
-	runner    *application.ActionRunner
+	runner    *framework.ActionRunner
 	processor UpdateProcessor
 }
 type UpdateProcessor interface {
-	Process(ctx context.Context, request *UpdateRequest) application.ActionResponse
+	Process(ctx context.Context, request *UpdateRequest) framework.ActionResponse
 }
 
-func NewUpdateAction(runner *application.ActionRunner, processor UpdateProcessor) *UpdateAction {
+func NewUpdateAction(runner *framework.ActionRunner, processor UpdateProcessor) *UpdateAction {
 	return &UpdateAction{runner: runner, processor: processor}
 }
 
 func (a *UpdateAction) Handle(w http.ResponseWriter, r *http.Request) {
 	a.runner.Run(
-		w, r, func(ctx context.Context, request any) application.ActionResponse {
+		w, r, func(ctx context.Context, request any) framework.ActionResponse {
 			return a.processor.Process(ctx, request.(*UpdateRequest))
 		}, &UpdateRequest{},
 	)

@@ -34,7 +34,8 @@ func ModuleHooks(
 			OnStart: func(context.Context) error {
 				router.AddRoutes(routes.GetRoutesInfo())
 				logger.Info(fmt.Sprintf("Listen to the port: %d", router.port))
-				return http.ListenAndServe(fmt.Sprintf(":%d", router.port), router.router)
+				go http.ListenAndServe(fmt.Sprintf(":%d", router.port), router.router)
+				return nil
 			},
 			OnStop: func(ctx context.Context) error {
 				logger.Info("Stopping http-server")
@@ -57,6 +58,9 @@ func HttpRouterModule(config ModuleConfig) fx.Option {
 					return nil, err
 				}
 				return &config, nil
+			},
+			func(router *Router) framework.Router {
+				return router
 			},
 		),
 		fx.Invoke(

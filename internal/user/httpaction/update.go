@@ -2,16 +2,15 @@ package httpaction
 
 import (
 	"boilerplate/internal/framework"
+	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/dao"
 	"boilerplate/internal/user/dto"
 	"boilerplate/internal/user/httpaction/errors"
 	"context"
-	application "github.com/debugger84/modulus-application"
-	validator "github.com/debugger84/modulus-validator-ozzo"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (u *UpdateRequest) Validate(ctx context.Context) []application.ValidationError {
+func (u *UpdateRequest) Validate(ctx context.Context) []framework.ValidationError {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		u,
@@ -42,7 +41,7 @@ func NewUpdateProcessor(
 	return &Update{finder: finder, saver: saver, logger: logger}
 }
 
-func (a *Update) Process(ctx context.Context, request *UpdateRequest) application.ActionResponse {
+func (a *Update) Process(ctx context.Context, request *UpdateRequest) framework.ActionResponse {
 	user := a.getUser(ctx, request.Id)
 	if user == nil {
 		return errors.UserNotFound(ctx, request.Id)
@@ -53,7 +52,7 @@ func (a *Update) Process(ctx context.Context, request *UpdateRequest) applicatio
 		a.logger.Error(ctx, err.Error())
 		return errors.CannotUpdateUser(ctx, request.Id)
 	}
-	return application.NewSuccessResponse(
+	return framework.NewSuccessResponse(
 		dto.User{
 			Id:   request.Id,
 			Name: user.Name,

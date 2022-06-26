@@ -1,12 +1,12 @@
 package httpaction
 
 import (
+	"boilerplate/internal/framework"
+	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/dto"
 	"boilerplate/internal/user/service"
 	"boilerplate/internal/user/storage"
 	"context"
-	application "github.com/debugger84/modulus-application"
-	validator "github.com/debugger84/modulus-validator-ozzo"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
 )
@@ -16,7 +16,7 @@ type RegisterRequest struct {
 	Email string `json:"email"`
 }
 
-func (r *RegisterRequest) Validate(ctx context.Context) []application.ValidationError {
+func (r *RegisterRequest) Validate(ctx context.Context) []framework.ValidationError {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		r,
@@ -35,32 +35,32 @@ type RegisterResponse struct {
 }
 
 type RegisterAction struct {
-	runner       *application.ActionRunner
+	runner       *framework.ActionRunner
 	registration *service.Registration
 }
 
-func NewRegisterAction(runner *application.ActionRunner, registration *service.Registration) *RegisterAction {
+func NewRegisterAction(runner *framework.ActionRunner, registration *service.Registration) *RegisterAction {
 	return &RegisterAction{runner: runner, registration: registration}
 }
 
 func (a *RegisterAction) Handle(w http.ResponseWriter, r *http.Request) {
 	a.runner.Run(
-		w, r, func(ctx context.Context, request any) application.ActionResponse {
+		w, r, func(ctx context.Context, request any) framework.ActionResponse {
 			return a.process(ctx, request.(*RegisterRequest))
 		}, &RegisterRequest{},
 	)
 }
 
-func (a *RegisterAction) process(ctx context.Context, request *RegisterRequest) application.ActionResponse {
+func (a *RegisterAction) process(ctx context.Context, request *RegisterRequest) framework.ActionResponse {
 	user := storage.CreateUserParams{
 		Name:  request.Name,
 		Email: request.Email,
 	}
 	result, err := a.registration.Register(ctx, user)
 	if err != nil {
-		return application.NewUnprocessableEntityResponse(ctx, err)
+		return framework.NewUnprocessableEntityResponse(ctx, err)
 	}
-	return application.NewSuccessCreationResponse(
+	return framework.NewSuccessCreationResponse(
 		RegisterResponse{
 			Id: result.ID.String(),
 		},

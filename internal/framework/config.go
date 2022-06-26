@@ -25,6 +25,6 @@ func NewViper() (*viper.Viper, error) {
 func ConfigModule() fx.Option {
 	return fx.Module(
 		"config",
-		fx.Provide(NewViper, NewRoutes),
+		fx.Provide(NewViper, NewRoutes, NewActionRunner, NewJsonResponseWriter),
 	)
 }

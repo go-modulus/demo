@@ -1,19 +1,19 @@
 package errors
 
 import (
+	"boilerplate/internal/framework"
 	"context"
 	"errors"
 	"fmt"
-	application "github.com/debugger84/modulus-application"
 )
 
-const userNotFound application.ErrorIdentifier = "UserNotFound"
-const cannotUpdateUser application.ErrorIdentifier = "CannotUpdateUser"
+const userNotFound framework.ErrorIdentifier = "UserNotFound"
+const cannotUpdateUser framework.ErrorIdentifier = "CannotUpdateUser"
 
-func UserNotFound(ctx context.Context, id string) application.ActionResponse {
-	return application.ActionResponse{
+func UserNotFound(ctx context.Context, id string) framework.ActionResponse {
+	return framework.ActionResponse{
 		StatusCode: 404,
-		Error: &application.ActionError{
+		Error: &framework.ActionError{
 			Ctx:              ctx,
 			Identifier:       userNotFound,
 			Err:              errors.New(fmt.Sprintf("User with id %s is not found", id)),
@@ -22,10 +22,10 @@ func UserNotFound(ctx context.Context, id string) application.ActionResponse {
 	}
 }
 
-func CannotUpdateUser(ctx context.Context, id string) application.ActionResponse {
-	return application.ActionResponse{
+func CannotUpdateUser(ctx context.Context, id string) framework.ActionResponse {
+	return framework.ActionResponse{
 		StatusCode: 422,
-		Error: &application.ActionError{
+		Error: &framework.ActionError{
 			Ctx:              ctx,
 			Identifier:       cannotUpdateUser,
 			Err:              errors.New(fmt.Sprintf("User with id %s cannot be updated", id)),
