@@ -2,17 +2,17 @@ package pgx
 
 import (
 	"context"
-	"demo/internal/framework"
+	"demo/internal/logger"
 	"github.com/jackc/pgx/v4"
 	"time"
 )
 
 type PgxLogger struct {
-	logger framework.Logger
+	logger logger.Logger
 	config *ModuleConfig
 }
 
-func NewPgxLogger(logger framework.Logger, config *ModuleConfig) *PgxLogger {
+func NewPgxLogger(logger logger.Logger, config *ModuleConfig) *PgxLogger {
 	return &PgxLogger{logger: logger, config: config}
 }
 

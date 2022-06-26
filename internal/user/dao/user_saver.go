@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"demo/internal/framework"
 	"demo/internal/user/dao/query"
 	"demo/internal/user/dto"
 	"gorm.io/gorm"
@@ -17,12 +18,18 @@ func NewUserSaver(db *gorm.DB) *UserSaver {
 
 func (f *UserSaver) Create(ctx context.Context, user dto.User) error {
 	result := f.db.Table(query.UserTable).WithContext(ctx).Create(&user)
+	if result.Error != nil {
+		return framework.NewGormError(result.Error)
+	}
 
-	return result.Error
+	return nil
 }
 
 func (f *UserSaver) Update(ctx context.Context, user dto.User) error {
 	result := f.db.Table(query.UserTable).WithContext(ctx).Save(&user)
+	if result.Error != nil {
+		return framework.NewGormError(result.Error)
+	}
 
-	return result.Error
+	return nil
 }

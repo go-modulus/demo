@@ -3,5 +3,4 @@
 
 package tools
 
-import _ "github.com/99designs/gqlgen"
 import _ "github.com/vektra/mockery/v2"

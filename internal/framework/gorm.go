@@ -2,7 +2,7 @@ package framework
 
 import (
 	"context"
-	"errors"
+	"demo/internal/errors"
 	"fmt"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
@@ -14,23 +14,20 @@ import (
 	"time"
 )
 
-type GormError struct {
-	Base     Error
-	Previous error
+const (
+	GormErrorCode errors.ErrorCode = "gorm.common"
+	GormErrorType errors.ErrorType = "GormError"
+)
+
+func NewGormError(err error) *errors.Error {
+	return errors.
+		New(GormErrorCode, "gorm error").
+		WithType(GormErrorType).
+		WithCause(err)
 }
 
-func NewGormError(err error) *GormError {
-	return &GormError{
-		Base: Error{
-			Message: "Gorm error",
-			Code:    "gorm.commonError",
-		},
-		Previous: err,
-	}
-}
-
-func (e GormError) Error() string {
-	return e.Base.Error()
+func IsGormError(err error) bool {
+	return errors.Type(err) == GormErrorType
 }
 
 type ZapLogger struct {
@@ -133,7 +130,7 @@ type GormConfig struct {
 func NewGorm(
 	viper *viper.Viper,
 	originalLogger *zap.Logger,
-	errorHandler *ErrorHandler,
+	errorHandler *errors.ErrorHandler,
 ) (*gorm.DB, error) {
 	gormConfig := &GormConfig{
 		PreferSimpleProtocol: true,
@@ -167,9 +164,7 @@ func NewGorm(
 
 	errorHandler.AttachFilter(
 		func(_ context.Context, err error) bool {
-			_, ok := err.(*GormError)
-
-			return ok == false
+			return IsGormError(err) == false
 		},
 	)
 
@@ -180,6 +175,5 @@ func GormModule() fx.Option {
 	return fx.Module(
 		"gorm",
 		fx.Provide(NewGorm),
-		fx.Invoke(NewGorm),
 	)
 }

@@ -27,8 +27,8 @@ func (f *UserFinder) OneByQuery(query *userQuery.UserQuery) (*dto.User, error) {
 	var user *dto.User
 	res := query.Build().Limit(1).Scan(&user)
 
-	if res.Error != nil {
-		return nil, framework.NewGormError(res.Error)
+	if err := res.Error; err != nil {
+		return nil, framework.NewGormError(err)
 	}
 
 	return user, nil
