@@ -1,8 +1,6 @@
-module boilerplate
+module demo
 
 go 1.18
-
-replace github.com/debugger84/modulus-application => ../app
 
 require (
 	github.com/99designs/gqlgen v0.17.9

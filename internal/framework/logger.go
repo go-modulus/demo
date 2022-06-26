@@ -2,11 +2,12 @@ package framework
 
 import (
 	"context"
+	"demo/internal/errors"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
-func NewLogger(errorHandler *ErrorHandler) (*zap.Logger, error) {
+func NewLogger(errorHandler *errors.ErrorHandler) (*zap.Logger, error) {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, err

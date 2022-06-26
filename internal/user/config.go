@@ -1,10 +1,10 @@
 package user
 
 import (
-	"boilerplate/internal/framework"
-	"boilerplate/internal/user/action"
-	"boilerplate/internal/user/dao"
-	"boilerplate/internal/user/service"
+	"demo/internal/framework"
+	"demo/internal/user/action"
+	"demo/internal/user/dao"
+	"demo/internal/user/service"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/fx"
 )

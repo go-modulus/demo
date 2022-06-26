@@ -1,9 +1,9 @@
 package action
 
 import (
-	"boilerplate/internal/framework"
-	"boilerplate/internal/user/dao"
 	"context"
+	"demo/internal/framework"
+	"demo/internal/user/dao"
 	application "github.com/debugger84/modulus-application"
 	"github.com/go-chi/chi/v5"
 )
