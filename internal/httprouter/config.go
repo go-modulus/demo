@@ -47,7 +47,7 @@ func ModuleHooks(
 	return nil
 }
 
-func HttpRouterModule(config ModuleConfig) fx.Option {
+func NewModule(config ModuleConfig) fx.Option {
 	return fx.Module(
 		"http-router",
 		fx.Provide(

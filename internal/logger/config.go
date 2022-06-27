@@ -24,7 +24,7 @@ func NewLogger(errorHandler *framework.ErrorHandler) (*zap.Logger, error) {
 	return logger, nil
 }
 
-func NewZapLoggerModule() fx.Option {
+func NewModule() fx.Option {
 	return fx.Module(
 		"zap-logger", fx.Provide(
 			NewLogger,

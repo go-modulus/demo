@@ -1,33 +1,37 @@
 package cache
 
 import (
-	application "github.com/debugger84/modulus-application"
-	"time"
+	"github.com/spf13/viper"
+	"go.uber.org/fx"
 )
 
 type ModuleConfig struct {
-	MaxCacheSizeInMb int
-	CacheEnabled     *bool
-	LifeTime         time.Duration
+	CacheEnabled bool `mapstructure:"CACHE_ENABLED"`
 }
 
-func (s *ModuleConfig) InitConfig(config application.Config) error {
-	if s.CacheEnabled == nil {
-		val := config.GetEnvAsBool("CACHE_ENABLED")
-		s.CacheEnabled = &val
-	}
-
-	return nil
-}
-
-func NewModuleConfig() *ModuleConfig {
-	return &ModuleConfig{}
-}
-
-func (s *ModuleConfig) ProvidedServices() []interface{} {
+func ProvidedServices(config ModuleConfig) []interface{} {
 	return []interface{}{
-		func() *ModuleConfig {
-			return s
+		func(viper *viper.Viper) (*ModuleConfig, error) {
+			err := viper.Unmarshal(&config)
+			if err != nil {
+				return nil, err
+			}
+			return &config, nil
 		},
 	}
+}
+
+func NewModule(config ModuleConfig) fx.Option {
+	return fx.Module(
+		"http-router",
+		fx.Provide(
+			func(viper *viper.Viper) (*ModuleConfig, error) {
+				err := viper.Unmarshal(&config)
+				if err != nil {
+					return nil, err
+				}
+				return &config, nil
+			},
+		),
+	)
 }

@@ -10,11 +10,11 @@ import (
 
 var userFinder *storage.Queries
 
-func NewUserLoaderCache() *cache.LoaderCache[uuid.UUID, storage.User] {
+func NewUserLoaderCache(config cache.ModuleConfig) *cache.LoaderCache[uuid.UUID, storage.User] {
 	baseCache := cache.NewCache[uuid.UUID, storage.User](
 		&cache.Config{
 			MaxCachedItems: 10,
-			CacheEnabled:   true,
+			CacheEnabled:   config.CacheEnabled,
 			LifeTime:       time.Hour,
 		},
 	)

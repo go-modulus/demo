@@ -1,6 +1,7 @@
 package main
 
 import (
+	"boilerplate/internal/cache"
 	"boilerplate/internal/framework"
 	router "boilerplate/internal/httprouter"
 	"boilerplate/internal/logger"
@@ -15,11 +16,12 @@ func main() {
 	app := fx.New(
 		framework.ConfigModule(),
 		framework.ErrorsModule(),
-		logger.NewZapLoggerModule(),
+		logger.NewModule(),
 		framework.HttpModule(),
 		framework.GormModule(),
 		pgx.PgxModule(pgx.ModuleConfig{}),
-		router.HttpRouterModule(router.ModuleConfig{}),
+		cache.NewModule(cache.ModuleConfig{}),
+		router.NewModule(router.ModuleConfig{}),
 		user.UserPlugin(),
 		fx.WithLogger(
 			func(logger *zap.Logger) fxevent.Logger {
