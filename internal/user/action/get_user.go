@@ -49,5 +49,6 @@ func (a *GetUserAction) Handle(ctx context.Context, request *GetUserRequest) (*a
 	response.Id = request.Id
 	response.Name = user.Name
 
-	return application.NewSuccessResponse(response), nil
+	r := application.NewSuccessResponse(response)
+	return &r, nil
 }

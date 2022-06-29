@@ -57,8 +57,11 @@ func (a *UpdateAction) Handle(ctx context.Context, request *UpdateRequest) (*app
 		a.logger.Error("error during user update", zap.Error(err))
 		return errors.CannotUpdateUser(ctx, request.Id), nil
 	}
-	return application.NewSuccessResponse(UpdateResponse{
-		Id:   request.Id,
-		Name: user.Name,
-	}), nil
+	r := application.NewSuccessResponse(
+		UpdateResponse{
+			Id:   request.Id,
+			Name: user.Name,
+		},
+	)
+	return &r, nil
 }
