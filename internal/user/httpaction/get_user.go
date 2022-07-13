@@ -28,12 +28,24 @@ func (u *GetUserRequest) Validate(ctx context.Context) []framework.ValidationErr
 	return validator.AsAppValidationErrors(err)
 }
 
-type GetUser struct {
-	finder *storage.Queries
+type TestOverride interface {
+	Name() string
 }
 
-func NewGetUserProcessor(finder *storage.Queries) GetUserProcessor {
-	return &GetUser{finder: finder}
+type Override struct {
+}
+
+func (o Override) Name() string {
+	return "Base"
+}
+
+type GetUser struct {
+	finder *storage.Queries
+	name   TestOverride
+}
+
+func NewGetUserProcessor(finder *storage.Queries, name TestOverride) GetUserProcessor {
+	return &GetUser{finder: finder, name: name}
 }
 
 func (a *GetUser) Process(ctx context.Context, request *GetUserRequest) framework.ActionResponse {
@@ -47,7 +59,7 @@ func (a *GetUser) Process(ctx context.Context, request *GetUserRequest) framewor
 		}
 	}
 	var response dto.User
-	response.Id = request.Id
+	response.Id = a.name.Name()
 	response.Name = user.Name
 	return framework.NewSuccessResponse(response)
 }

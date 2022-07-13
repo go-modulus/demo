@@ -74,6 +74,9 @@ func ProvidedServices() []interface{} {
 			func(db storage.DBTX) *storage.Queries {
 				return storage.New(db)
 			},
+			func() httpaction.TestOverride {
+				return &httpaction.Override{}
+			},
 		}...,
 	)
 }

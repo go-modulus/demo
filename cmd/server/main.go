@@ -5,6 +5,7 @@ import (
 	"boilerplate/internal/framework"
 	router "boilerplate/internal/httprouter"
 	"boilerplate/internal/logger"
+	"boilerplate/internal/override"
 	"boilerplate/internal/pgx"
 	"boilerplate/internal/user"
 	"go.uber.org/fx"
@@ -23,11 +24,13 @@ func main() {
 		cache.NewModule(cache.ModuleConfig{}),
 		router.NewModule(router.ModuleConfig{}),
 		user.UserPlugin(),
+
 		fx.WithLogger(
 			func(logger *zap.Logger) fxevent.Logger {
 				return &fxevent.ZapLogger{Logger: logger}
 			},
 		),
+		override.Overrides(),
 	)
 
 	app.Run()
