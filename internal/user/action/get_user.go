@@ -1,12 +1,12 @@
 package action
 
 import (
+	"boilerplate/internal/auth"
 	"boilerplate/internal/framework"
 	actionError "boilerplate/internal/user/action/errors"
 	"boilerplate/internal/user/dao"
 	"context"
 	application "github.com/debugger84/modulus-application"
-	"github.com/go-chi/chi/v5"
 )
 
 type GetUserRequest struct {
@@ -26,13 +26,17 @@ func NewGetUserAction(finder *dao.UserFinder) *GetUserAction {
 	return &GetUserAction{finder: finder}
 }
 
-func (a *GetUserAction) Register(chi chi.Router, errorHandler *framework.HttpErrorHandler) error {
+func (a *GetUserAction) Register(
+	auth *auth.Auth,
+	routes *framework.Routes,
+	errorHandler *framework.HttpErrorHandler,
+) error {
 	getUser, err := framework.WrapHandler[*GetUserRequest](errorHandler, a)
 
 	if err != nil {
 		return err
 	}
-	chi.Get("/users/{id}", getUser)
+	routes.Get("/users/{id}", auth.AuthGuard(getUser))
 
 	return nil
 }

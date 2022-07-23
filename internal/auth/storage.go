@@ -21,7 +21,7 @@ func NewGormStorage(db *gorm.DB, cfg *ModuleConfig) *GormStorage {
 // Save the user
 func (s GormStorage) Save(ctx context.Context, user authboss.User) error {
 	u := user.(*User)
-	result := s.db.WithContext(ctx).Table(s.cfg.UserTable).Create(u)
+	result := s.db.WithContext(ctx).Table(s.cfg.AccountTable).Create(u)
 
 	return result.Error
 }
@@ -30,7 +30,7 @@ func (s GormStorage) loadOauth2User(ctx context.Context, provider string, uid st
 	var userObj User
 	result := s.db.
 		WithContext(ctx).
-		Table(s.cfg.UserTable).
+		Table(s.cfg.AccountTable).
 		Where("oauth2_provider = ?", provider).
 		Where("oauth2_uid = ?", uid).
 		Limit(1).
@@ -49,7 +49,7 @@ func (s GormStorage) loadDirectUser(ctx context.Context, id string) (authboss.Us
 	var userObj User
 	result := s.db.
 		WithContext(ctx).
-		Table(s.cfg.UserTable).
+		Table(s.cfg.AccountTable).
 		Where("id = ?", id).
 		Limit(1).
 		Find(&userObj)
@@ -95,7 +95,7 @@ func (s GormStorage) LoadByConfirmSelector(ctx context.Context, selector string)
 	var userObj User
 	result := s.db.
 		WithContext(ctx).
-		Table(s.cfg.UserTable).
+		Table(s.cfg.AccountTable).
 		Where("confirm_selector = ?", selector).
 		Limit(1).
 		Find(&userObj)
@@ -117,7 +117,7 @@ func (s GormStorage) LoadByRecoverSelector(ctx context.Context, selector string)
 	var userObj User
 	result := s.db.
 		WithContext(ctx).
-		Table(s.cfg.UserTable).
+		Table(s.cfg.AccountTable).
 		Where("recover_selector = ?", selector).
 		Limit(1).
 		Find(&userObj)
@@ -181,7 +181,7 @@ func (s GormStorage) NewFromOAuth2(ctx context.Context, provider string, details
 		var user User
 		result := s.db.
 			WithContext(ctx).
-			Table(s.cfg.UserTable).
+			Table(s.cfg.AccountTable).
 			Where("email = ?", email).
 			Limit(1).
 			Find(&user)

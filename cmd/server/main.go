@@ -1,6 +1,7 @@
 package main
 
 import (
+	"boilerplate/internal/auth"
 	"boilerplate/internal/cache"
 	"boilerplate/internal/framework"
 	router "boilerplate/internal/httprouter"
@@ -23,6 +24,8 @@ func main() {
 		pgx.PgxModule(pgx.ModuleConfig{}),
 		cache.NewModule(cache.ModuleConfig{}),
 		router.NewModule(router.ModuleConfig{}),
+		auth.NewModule(auth.ModuleConfig{}),
+
 		user.UserPlugin(),
 
 		fx.WithLogger(

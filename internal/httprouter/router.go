@@ -6,7 +6,11 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"net/url"
+	"regexp"
 )
+
+var paramReg = regexp.MustCompile(`\{([a-zA-Z0-9]+)\}+`)
+var wildcardReg = regexp.MustCompile(`\/\*$`)
 
 type Router struct {
 	router *httprouter.Router
@@ -32,7 +36,10 @@ func NewRouter(config *ModuleConfig, logger framework.Logger) *Router {
 func (r *Router) AddRoutes(routes []framework.RouteInfo) {
 	for _, info := range routes {
 		r.logger.Debug(context.Background(), info.Method()+": "+info.Path())
-		r.router.Handler(info.Method(), info.Path(), info.Handler())
+		path := info.Path()
+		path = paramReg.ReplaceAllString(path, ":$1")
+		path = wildcardReg.ReplaceAllString(path, "$1param1")
+		r.router.Handler(info.Method(), path, info.Handler())
 	}
 }
 

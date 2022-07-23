@@ -1,6 +1,7 @@
 package user
 
 import (
+	"boilerplate/internal/auth"
 	"boilerplate/internal/framework"
 	"boilerplate/internal/user/action"
 	"boilerplate/internal/user/dao"
@@ -22,12 +23,13 @@ func registerRouters(
 	updateAction *action.UpdateAction,
 	genActions *httpaction.ModuleActions,
 	routes *framework.Routes,
+	auth *auth.Auth,
 ) error {
 	err := registerAction.Register(chi, errorHandler)
 	if err != nil {
 		return err
 	}
-	err = getUserAction.Register(chi, errorHandler)
+	err = getUserAction.Register(auth, routes, errorHandler)
 	if err != nil {
 		return err
 	}
