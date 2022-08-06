@@ -74,21 +74,23 @@ func NewChi(
 		//ErrorLog: logger,
 	}
 
-	lc.Append(fx.Hook{
-		OnStart: func(context.Context) error {
-			logger.Info(
-				"Starting http-server",
-				zap.String("address", httpConfig.Address),
-			)
-			// TODO: Send errors to channel
-			go server.ListenAndServe()
-			return nil
+	lc.Append(
+		fx.Hook{
+			OnStart: func(context.Context) error {
+				logger.Info(
+					"Starting http-server",
+					zap.String("address", httpConfig.Address),
+				)
+				// TODO: Send errors to channel
+				go server.ListenAndServe()
+				return nil
+			},
+			OnStop: func(ctx context.Context) error {
+				logger.Info("Stopping http-server")
+				return server.Shutdown(ctx)
+			},
 		},
-		OnStop: func(ctx context.Context) error {
-			logger.Info("Stopping http-server")
-			return server.Shutdown(ctx)
-		},
-	})
+	)
 
 	return router, nil
 }
@@ -136,6 +138,9 @@ func WrapHandler[R any](
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
+		ctx = SetHttpRequest(ctx, req)
+		ctx = SetHttpResponseWriter(ctx, w)
+		req = req.WithContext(ctx)
 
 		val, err := engine.Decode(req)
 		if err != nil {
@@ -145,6 +150,14 @@ func WrapHandler[R any](
 				req,
 			)
 			return
+		}
+
+		if validatable, ok := val.(ValidatableStruct); ok {
+			validationErrs := validatable.Validate(ctx)
+			if validationErrs != nil {
+				errorHandler.Handle(validationErrs[0], w, req)
+				return
+			}
 		}
 
 		res, err := handler.Handle(ctx, val.(R))

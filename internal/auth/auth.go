@@ -1,25 +1,27 @@
 package auth
 
 import (
+	"boilerplate/internal/auth/provider/local"
 	"errors"
 	"github.com/go-pkgz/auth"
 	"github.com/go-pkgz/auth/avatar"
 	logger2 "github.com/go-pkgz/auth/logger"
 	"github.com/go-pkgz/auth/provider"
 	"github.com/go-pkgz/auth/token"
-	"net/http"
 	"strings"
 	"time"
 )
 
 type Auth struct {
-	service   *auth.Service
-	AuthGuard func(next http.HandlerFunc) http.HandlerFunc
+	service      *auth.Service
+	sessionStore *local.Session
+	guard        *GuardMiddleware
 }
 
 func NewAuth(
 	logger logger2.L,
-	storage *GormStorage,
+	sessionStore *local.Session,
+	guard *GuardMiddleware,
 ) *Auth {
 	// define options
 	options := auth.Opts{
@@ -60,14 +62,17 @@ func NewAuth(
 		),
 	)
 
-	m := service.Middleware()
+	//m := service.Middleware()
 
 	return &Auth{
-		service: service,
-		AuthGuard: func(next http.HandlerFunc) http.HandlerFunc {
-			return m.Auth(next).ServeHTTP
-		},
+		service:      service,
+		sessionStore: sessionStore,
+		guard:        guard,
 	}
+}
+
+func (a *Auth) AuthGuard() *GuardMiddleware {
+	return a.guard
 }
 
 func (a *Auth) RegisterAccount() error {

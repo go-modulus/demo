@@ -10,7 +10,7 @@ import (
 )
 
 type GetUserRequest struct {
-	Id string `in:"path=id;required"`
+	Id string `json:"id" in:"path=id;required"`
 }
 
 type UserResponse struct {
@@ -36,7 +36,7 @@ func (a *GetUserAction) Register(
 	if err != nil {
 		return err
 	}
-	routes.Get("/users/{id}", auth.AuthGuard(getUser))
+	routes.Get("/users/{id}", auth.AuthGuard().Auth(getUser))
 
 	return nil
 }

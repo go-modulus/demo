@@ -25,7 +25,7 @@ func registerRouters(
 	routes *framework.Routes,
 	auth *auth.Auth,
 ) error {
-	err := registerAction.Register(chi, errorHandler)
+	err := registerAction.Register(routes, errorHandler)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func registerRouters(
 	if err != nil {
 		return err
 	}
-	err = getUsersAction.Register(chi, errorHandler)
+	err = getUsersAction.Register(auth, routes, errorHandler)
 	if err != nil {
 		return err
 	}

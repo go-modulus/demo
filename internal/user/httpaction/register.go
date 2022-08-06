@@ -5,7 +5,6 @@ import (
 	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/dto"
 	"boilerplate/internal/user/service"
-	"boilerplate/internal/user/storage"
 	"context"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/http"
@@ -52,7 +51,7 @@ func (a *RegisterAction) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *RegisterAction) process(ctx context.Context, request *RegisterRequest) framework.ActionResponse {
-	user := storage.CreateUserParams{
+	user := service.RegisterUserRequest{
 		Name:  request.Name,
 		Email: request.Email,
 	}

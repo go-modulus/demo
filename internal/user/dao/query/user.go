@@ -30,6 +30,14 @@ func (p *UserQuery) Id(id string) *UserQuery {
 	return p
 }
 
+func (p *UserQuery) NotInIds(ids []string) *UserQuery {
+	if len(ids) == 0 {
+		return p
+	}
+	p.Db = p.Db.Where(UserTable+".id IN (?)", ids)
+	return p
+}
+
 func (p *UserQuery) NewerFirst() *UserQuery {
 	p.Db = p.Db.Order(UserTable + ".registered_at DESC")
 	return p

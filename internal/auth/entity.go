@@ -7,6 +7,19 @@ import (
 	"time"
 )
 
+type PasswordAuthenticator struct {
+	UserID    string `gorm:"column:user_id"`
+	Email     string `gorm:"column:email"`
+	Nickname  string `gorm:"column:nickname"`
+	Phone     string `gorm:"column:phone"`
+	Password  string `gorm:"column:password"`
+	CreatedAt time.Time
+}
+
+func (a PasswordAuthenticator) GetUserId() string {
+	return a.UserID
+}
+
 type User struct {
 	ID string `gorm:"column:id"`
 

@@ -1,5 +1,18 @@
 create schema auth;
 
+create table auth.local_account
+(
+    user_id                    uuid primary key,
+    email                 text             DEFAULT NULL
+        CONSTRAINT account_email_uniq UNIQUE,
+    nickname                 text             DEFAULT NULL
+        CONSTRAINT account_nickname_uniq UNIQUE,
+    phone                 text             DEFAULT NULL
+        CONSTRAINT account_phone_uniq UNIQUE,
+    "password"            text             DEFAULT NULL,
+    created_at         timestamptz      DEFAULT NULL
+);
+
 create table auth.account
 (
     id                    uuid primary key,
