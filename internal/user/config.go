@@ -1,6 +1,7 @@
 package user
 
 import (
+	"boilerplate/internal/auth"
 	"boilerplate/internal/framework"
 	"boilerplate/internal/user/action"
 	"boilerplate/internal/user/dao"
@@ -22,16 +23,17 @@ func registerRouters(
 	updateAction *action.UpdateAction,
 	genActions *httpaction.ModuleActions,
 	routes *framework.Routes,
+	auth *auth.Auth,
 ) error {
-	err := registerAction.Register(chi, errorHandler)
+	err := registerAction.Register(routes, errorHandler)
 	if err != nil {
 		return err
 	}
-	err = getUserAction.Register(chi, errorHandler)
+	err = getUserAction.Register(auth, routes, errorHandler)
 	if err != nil {
 		return err
 	}
-	err = getUsersAction.Register(chi, errorHandler)
+	err = getUsersAction.Register(auth, routes, errorHandler)
 	if err != nil {
 		return err
 	}
@@ -73,6 +75,9 @@ func ProvidedServices() []interface{} {
 			},
 			func(db storage.DBTX) *storage.Queries {
 				return storage.New(db)
+			},
+			func() httpaction.TestOverride {
+				return &httpaction.Override{}
 			},
 		}...,
 	)

@@ -3,11 +3,9 @@ package action
 import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/user/service"
-	"boilerplate/internal/user/storage"
 	"context"
 	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
-	"github.com/go-chi/chi/v5"
 )
 
 type RegisterRequest struct {
@@ -27,19 +25,19 @@ func NewRegisterAction(registration *service.Registration) *RegisterAction {
 	return &RegisterAction{registration: registration}
 }
 
-func (a *RegisterAction) Register(chi chi.Router, errorHandler *framework.HttpErrorHandler) error {
+func (a *RegisterAction) Register(routes *framework.Routes, errorHandler *framework.HttpErrorHandler) error {
 	registerUser, err := framework.WrapHandler[*RegisterRequest](errorHandler, a)
 
 	if err != nil {
 		return err
 	}
-	chi.Post("/users", registerUser)
+	routes.Post("/users", registerUser)
 
 	return nil
 }
 
 func (a *RegisterAction) Handle(ctx context.Context, req *RegisterRequest) (*application.ActionResponse, error) {
-	user := storage.CreateUserParams{
+	user := service.RegisterUserRequest{
 		Name:  req.Name,
 		Email: req.Email,
 	}
