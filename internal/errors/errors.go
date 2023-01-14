@@ -153,7 +153,7 @@ func FromPanic(err any) *Error {
 		return FromError(err)
 	}
 
-	return New(InternalServerErrorCode, fmt.Sprintf("panic: %v", err))
+	return New(InternalServerErrorCode, fmt.Sprintf("panic: %w", err))
 }
 
 func FromError(err error) *Error {

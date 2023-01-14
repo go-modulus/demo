@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create message 1`] = `
+{
+  "data": {
+    "createMessage": {
+      "conversationId": Any<String>,
+      "createdAt": Any<Number>,
+      "id": Any<String>,
+      "richText": {
+        "parts": [
+          {
+            "__typename": "PlainRichText",
+            "text": "Hi!",
+          },
+        ],
+        "text": "Hi!",
+      },
+      "updatedAt": Any<Number>,
+    },
+  },
+}
+`;
+
+exports[`edit message 1`] = `
+{
+  "data": {
+    "editMessage": {
+      "conversationId": Any<String>,
+      "createdAt": Any<Number>,
+      "id": Any<String>,
+      "richText": {
+        "parts": [
+          {
+            "__typename": "PlainRichText",
+            "text": "Hello!",
+          },
+        ],
+        "text": "Hello!",
+      },
+      "updatedAt": Any<Number>,
+    },
+  },
+}
+`;

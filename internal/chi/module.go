@@ -1,14 +1,13 @@
 package chi
 
 import (
-	"context"
+	"demo/internal/cli"
 	"demo/internal/http"
-	"demo/internal/logger"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
-	oHttp "net/http"
 )
 
 type Config struct {
@@ -28,59 +27,8 @@ func NewConfig(viper *viper.Viper) (*Config, error) {
 	return config, nil
 }
 
-type ChiParams struct {
-	fx.In
-
-	Lc           fx.Lifecycle
-	Config       *Config
-	Routes       *http.Routes
-	ErrorHandler *http.ErrorHandler
-	ErrChannel   chan<- error `name:"errors.channel"`
-	Logger       logger.Logger
-}
-
-func NewChi(params ChiParams) (chi.Router, error) {
-	router := chi.NewRouter()
-
-	server := oHttp.Server{
-		Addr:    params.Config.Address,
-		Handler: router,
-		// TODO: Add logger
-		//ErrorLog: logger,
-	}
-
-	params.Lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			for _, route := range params.Routes.List() {
-				handler := route.Handler
-
-				router.Method(
-					route.Method,
-					route.Path,
-					params.ErrorHandler.Wrap(handler),
-				)
-			}
-
-			params.Logger.Info(
-				ctx,
-				"Starting http-server",
-				logger.Field("address", params.Config.Address),
-			)
-
-			go func() {
-				err := server.ListenAndServe()
-				params.ErrChannel <- err
-			}()
-
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			params.Logger.Info(ctx, "Stopping http-server")
-			return server.Shutdown(ctx)
-		},
-	})
-
-	return router, nil
+func NewChi() chi.Router {
+	return chi.NewRouter()
 }
 
 type ModuleParams struct {
@@ -89,7 +37,20 @@ type ModuleParams struct {
 
 func Module(params ModuleParams) fx.Option {
 	opts := make([]fx.Option, 0)
-	opts = append(opts, fx.Provide(NewConfig, NewChi))
+	opts = append(
+		opts,
+		fx.Provide(
+			NewConfig,
+			NewChi,
+			NewServe,
+
+			cli.ProvideCommand(
+				func(serve *Serve) *cobra.Command {
+					return serve.Command()
+				},
+			),
+		),
+	)
 
 	if params.Configure != nil {
 		opts = append(

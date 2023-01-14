@@ -1,0 +1,50 @@
+extend type Query {
+    conversation(id: Uuid!): ConversationResult!
+    myConversations(first: Int! = 25, after: String): MyConversationsResult!
+}
+
+extend type Mutation {
+    createOneToOneConversation(receiverId: Uuid!): CreateOneToOneConversationResult!
+}
+
+union ConversationResult = ConversationBox | ErrUnknownConversation | ErrInvalidInput | ErrUnauthorized
+
+type ErrUnknownConversation implements Error {
+    message: String!
+}
+
+union MyConversationsResult = ConversationList | ErrInvalidInput | ErrUnauthorized
+
+union CreateOneToOneConversationResult = OneToOneConversation | ErrUnknownReceiver | ErrInvalidInput | ErrUnauthorized
+
+type ErrUnknownReceiver implements Error {
+    message: String!
+}
+
+union Conversation = OneToOneConversation
+
+type ConversationBox {
+    value: Conversation!
+}
+
+type OneToOneConversation {
+    id: Uuid!
+    draft: Draft @goField(forceResolver: true)
+    lastMessage: Message @goField(forceResolver: true)
+    createdAt: MilliTimestamp!
+}
+
+type ConversationEdge {
+    cursor: String!
+    node: Conversation!
+}
+
+type ConversationList {
+    edges: [ConversationEdge]!
+    pageInfo: PageInfo!
+}
+
+directive @goField(
+    forceResolver: Boolean
+    name: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION | INTERFACE

@@ -4,6 +4,7 @@ const (
 	BusinessLogicError ErrorType = "BusinessLogicError"
 	BadRequestError    ErrorType = "BadRequestError"
 	NotFoundError      ErrorType = "NotFoundError"
+	UnauthorizedError  ErrorType = "UnauthorizedError"
 )
 
 func NewBusinessLogicError(code ErrorCode, message string) *Error {
@@ -34,4 +35,14 @@ func NewNotFoundError(code ErrorCode, message string) *Error {
 
 func IsNotFoundError(err error) bool {
 	return Type(err) == NotFoundError
+}
+
+func NewUnauthorizedError(code ErrorCode, message string) *Error {
+	return New(code, message).
+		WithType(UnauthorizedError).
+		WithFlags(ErrorUserFriendly | ErrorDontHandle)
+}
+
+func IsUnauthorizedError(err error) bool {
+	return Type(err) == UnauthorizedError
 }

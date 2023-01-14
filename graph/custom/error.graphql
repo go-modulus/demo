@@ -1,0 +1,21 @@
+interface Error {
+    message: String!
+}
+
+type ErrInvalidInput implements Error {
+    message: String!
+    fields: [InvalidField!]!
+}
+
+type InvalidField {
+    field: String!
+    rule: ValidationRule!
+}
+
+interface ValidationRule {
+    message: String!
+}
+
+type UuidRule implements ValidationRule {
+    message: String!
+}

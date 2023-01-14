@@ -1,0 +1,106 @@
+# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INTERFACE | INPUT_FIELD_DEFINITION
+
+union Conversation = OneToOneConversation
+
+union Message = TextMessage
+
+union RichTextPart = PlainRichText
+
+type ConversationEdge {
+    cursor: String!
+    node: Conversation!
+}
+
+type ConversationList {
+    edges: [ConversationEdge]!
+    pageInfo: PageInfo!
+}
+
+type Draft {
+    conversationId: Uuid!
+    messageId: Uuid
+    richText: RichText
+}
+
+type Mutation {
+    createMessage(conversationId: Uuid!, text: String): TextMessage!
+    createOneToOneConversation(receiverId: Uuid!): OneToOneConversation!
+    deleteMessage(messageId: Uuid!): Void!
+    editMessage(messageId: Uuid!, text: String): TextMessage!
+    register(request: RegisterRequest!): User!
+    removeDraft(conversationId: Uuid!): Void!
+    saveDraft(conversationId: Uuid!, messageId: Uuid, text: String): Draft!
+}
+
+type OneToOneConversation {
+    createdAt: MilliTimestamp!
+    draft: Draft
+    id: Uuid!
+    lastMessage: Message
+}
+
+type PageInfo {
+    endCursor: String!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String!
+}
+
+type PlainRichText {
+    text: String!
+}
+
+type Query {
+    conversation(id: Uuid!): Conversation!
+    myConversations(after: String, first: Int! = 25): ConversationList!
+    user(id: String!): User!
+    users(after: String, first: Int!): UserList!
+}
+
+type RichText {
+    parts: [RichTextPart!]!
+    text: String
+}
+
+type TextMessage {
+    conversationId: Uuid!
+    createdAt: MilliTimestamp!
+    id: Uuid!
+    richText: RichText
+    updatedAt: MilliTimestamp!
+}
+
+type User {
+    email: String!
+    id: String!
+    name: String!
+}
+
+type UserEdge {
+    cursor: String!
+    node: User!
+}
+
+type UserList {
+    edges: [UserEdge!]!
+    pageInfo: PageInfo!
+}
+
+scalar MilliTimestamp
+
+scalar Uuid
+
+scalar Void
+
+input RegisterRequest {
+    age: Int!
+    email: String!
+    name: String!
+}

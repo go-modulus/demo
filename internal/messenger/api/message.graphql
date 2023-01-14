@@ -1,0 +1,57 @@
+extend type Query {
+    messages(conversationId: Uuid!, first: Int! = 25, after: String): MessagesResult!
+}
+
+extend type Mutation {
+    createMessage(conversationId: Uuid!, text: String): CreateMessageResult!
+    editMessage(messageId: Uuid!, text: String): EditMessageResult!
+    deleteMessage(messageId: Uuid!): DeleteMessageResult!
+}
+
+union MessagesResult = MessageList | ErrUnknownConversation | ErrInvalidInput | ErrUnauthorized
+
+union CreateMessageResult = TextMessage | ErrUnknownConversation | ErrTextTooLong | ErrInvalidInput | ErrUnauthorized
+union EditMessageResult = TextMessage | ErrUnknownMessage | ErrTextTooLong | ErrInvalidInput | ErrUnauthorized
+union DeleteMessageResult = VoidBox | ErrUnknownMessage | ErrInvalidInput | ErrUnauthorized
+
+type ErrUnknownMessage implements Error {
+    message: String!
+}
+
+type ErrTextTooLong implements Error {
+    message: String!
+
+    currentLength: Int!
+    maxLength: Int!
+}
+
+union Message = TextMessage
+
+type TextMessage {
+    id: Uuid!
+    conversationId: Uuid!
+    richText: RichText
+    updatedAt: MilliTimestamp!
+    createdAt: MilliTimestamp!
+}
+
+type MessageEdge {
+    cursor: String!
+    node: Message!
+}
+
+type MessageList {
+    edges: [MessageEdge]!
+    pageInfo: PageInfo!
+}
+
+type RichText {
+    text: String
+    parts: [RichTextPart!]!
+}
+
+union RichTextPart = PlainRichText
+
+type PlainRichText {
+    text: String!
+}

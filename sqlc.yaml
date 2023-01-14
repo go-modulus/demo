@@ -1,0 +1,24 @@
+version: "2"
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        go_type: "github.com/gofrs/uuid.UUID"
+        nullable: false
+      - db_type: "uuid"
+        go_type: "github.com/gofrs/uuid.NullUUID"
+        nullable: true
+sql:
+  - schema: "internal/messenger/persistence/migration"
+    queries: "internal/messenger/persistence/query"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "persistence"
+        out: "internal/messenger/persistence"
+        sql_package: "pgx/v5"
+        overrides:
+          - column: "messenger.draft.text_parts"
+            go_type: "demo/internal/messenger/domain.RichTextParts"
+          - column: "messenger.message.text_parts"
+            go_type: "demo/internal/messenger/domain.RichTextParts"

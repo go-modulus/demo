@@ -2,11 +2,25 @@
 RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 $(eval $(RUN_ARGS):;@:)
 
+start=reflex -r '(\.go$|go\.mod)' -R .idea/ -s -d none $(2) -- sh -c 'make build && $(or $(value 1), /usr/bin/demo serve)'
+
 ####################################################################################################
 ## MAIN COMMANDS
 ####################################################################################################
 help: ## Commands list
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+build:
+	go build -buildvcs=false -o /usr/bin/demo cmd/main.go
+
+start:
+	$(call start)
+
+graphql-generate: ## Generate public graphql schema
+	go run github.com/99designs/gqlgen generate --config gqlgen.yml
+
+m:
+	migrate -database postgres://modulus:secret@postgres:5432/demo?sslmode=disable -path internal/messenger/persistence/migration $(RUN_ARGS)
 
 install: ## Make a binary to ./bin folder
 	go build -o ./bin/server  -i /cmd/server/main.go

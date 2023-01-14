@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`remove draft 1`] = `
+{
+  "data": {
+    "removeDraft": null,
+  },
+}
+`;
+
+exports[`save draft 1`] = `
+{
+  "data": {
+    "saveDraft": {
+      "conversationId": Any<String>,
+      "messageId": Any<String>,
+      "richText": {
+        "parts": [
+          {
+            "__typename": "PlainRichText",
+            "text": "Hi!",
+          },
+        ],
+        "text": "Hi!",
+      },
+    },
+  },
+}
+`;

@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create conversation 1`] = `
+{
+  "data": {
+    "createOneToOneConversation": {
+      "createdAt": Any<Number>,
+      "draft": null,
+      "id": Any<String>,
+      "lastMessage": null,
+    },
+  },
+}
+`;
+
+exports[`list conversations 1`] = `
+{
+  "data": {
+    "myConversations": {
+      "edges": [
+        {
+          "cursor": Any<String>,
+          "node": {
+            "__typename": "OneToOneConversation",
+            "createdAt": Any<Number>,
+            "draft": null,
+            "id": Any<String>,
+            "lastMessage": null,
+          },
+        },
+        {
+          "cursor": Any<String>,
+          "node": {
+            "__typename": "OneToOneConversation",
+            "createdAt": Any<Number>,
+            "draft": null,
+            "id": Any<String>,
+            "lastMessage": null,
+          },
+        },
+        {
+          "cursor": Any<String>,
+          "node": {
+            "__typename": "OneToOneConversation",
+            "createdAt": Any<Number>,
+            "draft": null,
+            "id": Any<String>,
+            "lastMessage": null,
+          },
+        },
+      ],
+      "pageInfo": {
+        "endCursor": Any<String>,
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": Any<String>,
+      },
+    },
+  },
+}
+`;

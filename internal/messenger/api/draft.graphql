@@ -1,0 +1,13 @@
+extend type Mutation {
+    saveDraft(conversationId: Uuid!, messageId: Uuid, text: String): SaveDraftResult!
+    removeDraft(conversationId: Uuid!): RemoveDraftResult!
+}
+
+union SaveDraftResult = Draft | ErrUnknownConversation | ErrUnknownMessage | ErrInvalidInput | ErrUnauthorized
+union RemoveDraftResult = VoidBox | ErrUnknownConversation | ErrInvalidInput | ErrUnauthorized
+
+type Draft {
+    conversationId: Uuid!
+    messageId: Uuid
+    richText: RichText
+}
