@@ -13,10 +13,11 @@ generate: ## Generate public graphql schema
 
 
 install: ## Make a binary to ./bin folder
-	go build -o ./bin/server  -i /cmd/server/main.go
+	go build -o ./bin/server  ./cmd/server/main.go
+	go build -o ./bin/console  ./cmd/console/main.go
 
 analyze: ## Run static analyzer
-	test -s ./bin/golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.45.0
+	test -s ./bin/golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.52.2
 	./bin/golangci-lint run -c ./.golangci.yaml ./...
 
 test: ## Run tests

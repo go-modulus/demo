@@ -4,7 +4,6 @@ import (
 	"boilerplate/internal/auth/provider/local"
 	"boilerplate/internal/framework"
 	"context"
-	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
 )
 
@@ -26,8 +25,12 @@ func NewLoginAction(provider *local.Provider, sessionStore *local.Session) *Logi
 	return &LoginAction{provider: provider, sessionStore: sessionStore}
 }
 
-func (a *LoginAction) Register(routes *framework.Routes, errorHandler *framework.HttpErrorHandler) error {
-	loginUser, err := framework.WrapHandler[*LoginRequest](errorHandler, a)
+func InitLoginAction(
+	routes *framework.Routes,
+	errorHandler *framework.HttpErrorHandler,
+	action *LoginAction,
+) error {
+	loginUser, err := framework.WrapHandler[*LoginRequest, LoginResponse](errorHandler, action, 200)
 
 	if err != nil {
 		return err
@@ -40,22 +43,21 @@ func (a *LoginAction) Register(routes *framework.Routes, errorHandler *framework
 	return nil
 }
 
-func (a *LoginAction) Handle(ctx context.Context, req *LoginRequest) (*application.ActionResponse, error) {
+func (a *LoginAction) Handle(ctx context.Context, req *LoginRequest) (LoginResponse, error) {
 	userId, err := a.provider.Login(ctx, req.Identity, req.Credential)
 	if err != nil {
-		return nil, err
+		return LoginResponse{}, err
 	}
 	err = a.saveSession(ctx, userId)
 	if err != nil {
-		return nil, err
+		return LoginResponse{}, err
 	}
 
-	r := application.NewSuccessCreationResponse(
-		LoginResponse{
-			Id: userId,
-		},
-	)
-	return &r, nil
+	r := LoginResponse{
+		Id: userId,
+	}
+
+	return r, nil
 }
 
 func (a *LoginAction) saveSession(ctx context.Context, userId string) error {

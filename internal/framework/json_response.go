@@ -28,7 +28,6 @@ func (j *DefaultJsonResponseWriter) Success(w http.ResponseWriter, r *http.Reque
 		j.logger.Error(ctx, "Error happened in JSON marshal. Err: %s", err)
 	}
 	_, _ = w.Write(jsonResp)
-	return
 }
 
 func (j *DefaultJsonResponseWriter) Error(w http.ResponseWriter, r *http.Request, response ActionResponse) {
@@ -61,5 +60,4 @@ func (j *DefaultJsonResponseWriter) Error(w http.ResponseWriter, r *http.Request
 		return
 	}
 	_, _ = w.Write(jsonResp)
-	return
 }

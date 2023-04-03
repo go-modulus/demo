@@ -3,21 +3,7 @@ package framework
 import (
 	"context"
 	"fmt"
-	"go.uber.org/fx"
 )
-
-type Error struct {
-	Message string
-	Code    string
-}
-
-func (e *Error) Error() string {
-	return e.Message
-}
-
-type BusinessLogicError struct {
-	Error
-}
 
 type ErrorFilter func(ctx context.Context, err error) bool
 type ErrorListener func(ctx context.Context, err error) error
@@ -43,7 +29,7 @@ func (h *ErrorHandler) Handle(ctx context.Context, err error) {
 	for _, filter := range h.filters {
 		shouldContinue := filter(ctx, err)
 
-		if shouldContinue == false {
+		if !shouldContinue {
 			return
 		}
 	}
@@ -55,11 +41,4 @@ func (h *ErrorHandler) Handle(ctx context.Context, err error) {
 			panic(fmt.Errorf("cannot handle error: %w", err))
 		}
 	}
-}
-
-func ErrorsModule() fx.Option {
-	return fx.Module(
-		"errors",
-		fx.Provide(NewErrorHandler),
-	)
 }

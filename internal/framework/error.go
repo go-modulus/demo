@@ -1,6 +1,11 @@
 package framework
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
+)
 
 type ErrorIdentifier string
 
@@ -9,20 +14,64 @@ const InvalidRequest ErrorIdentifier = "InvalidRequest"
 const UnprocessableEntity ErrorIdentifier = "UnprocessableEntity"
 const UnknownError ErrorIdentifier = "UnknownError"
 
+var p = message.NewPrinter(language.English)
+
+type UserError interface {
+	Identifier() ErrorIdentifier
+	Message(*message.Printer) string
+}
+
+type ExtraError interface {
+	Extra() map[string]any
+}
+
 type CommonError struct {
-	Identifier ErrorIdentifier
-	Err        string
+	identifier   ErrorIdentifier
+	errTpl       string
+	tplVariables []any
+}
+
+func (e *CommonError) Identifier() ErrorIdentifier {
+	return e.identifier
+}
+
+func (e *CommonError) Message(printer *message.Printer) string {
+	return printer.Sprintf(e.errTpl, e.tplVariables...)
 }
 
 func (e *CommonError) Error() string {
-	return e.Err
+	return fmt.Sprintf(e.errTpl, e.tplVariables...)
 }
 
-func NewCommonError(identifier ErrorIdentifier, err string) *CommonError {
+func NewTranslatedError(ctx context.Context, identifier ErrorIdentifier, errTpl string, variables ...any) *CommonError {
+	t := GetTranslator(ctx)
+	msg := t.Sprintf(errTpl, variables...)
 	return &CommonError{
-		Identifier: identifier,
-		Err:        err,
+		identifier:   identifier,
+		errTpl:       msg,
+		tplVariables: variables,
 	}
+}
+
+func NewCommonError(identifier ErrorIdentifier, errTpl string, variables ...any) *CommonError {
+	// it is a hack to mark the error for extracting to the translation file
+	_ = p.Sprintf(errTpl, variables...)
+	return &CommonError{
+		identifier:   identifier,
+		errTpl:       errTpl,
+		tplVariables: variables,
+	}
+}
+
+func (e *CommonError) WithTplVariables(variables ...any) error {
+	return NewCommonError(e.identifier, e.errTpl, variables...)
+}
+
+func (e *CommonError) Is(err error) bool {
+	if cErr, ok := err.(*CommonError); ok {
+		return cErr.identifier == e.identifier
+	}
+	return false
 }
 
 type ActionError struct {
@@ -50,6 +99,16 @@ func (e ValidationError) Error() string {
 	return e.Err
 }
 
+func (e ValidationError) Is(err error) bool {
+	if cErr, ok := err.(*CommonError); ok {
+		return cErr.identifier == e.Identifier
+	}
+	if cErr, ok := err.(*ValidationError); ok {
+		return cErr.Identifier == e.Identifier
+	}
+	return false
+}
+
 func NewServerErrorResponse(ctx context.Context, identifier ErrorIdentifier, err error) ActionResponse {
 	return ActionResponse{
 		StatusCode: 500,
@@ -67,7 +126,7 @@ func NewUnprocessableEntityResponse(ctx context.Context, err error) ActionRespon
 	identifier := UnprocessableEntity
 	if commonErr, ok := err.(*CommonError); ok {
 		code = 422
-		identifier = commonErr.Identifier
+		identifier = commonErr.identifier
 	}
 	return ActionResponse{
 		StatusCode: code,

@@ -28,7 +28,7 @@ func registerRoutes(
 ) error {
 	authHandler, avatarHandler := auth.service.Handlers()
 
-	err := loginAction.Register(routes, errorHandler)
+	err := action.InitLoginAction(routes, errorHandler, loginAction)
 	if err != nil {
 		return err
 	}

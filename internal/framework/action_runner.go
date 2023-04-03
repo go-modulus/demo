@@ -23,12 +23,21 @@ type ActionResponse struct {
 	Response        any
 	Error           *ActionError
 	IsLoggingErrors bool
+	Template        *Page
 }
 
 func NewSuccessResponse(response any) ActionResponse {
 	return ActionResponse{
 		StatusCode: 200,
 		Response:   response,
+	}
+}
+
+func NewSuccessHtmlResponse(response any, template *Page) ActionResponse {
+	return ActionResponse{
+		StatusCode: 200,
+		Response:   response,
+		Template:   template,
 	}
 }
 
@@ -110,6 +119,9 @@ func (j *ActionRunner) runPut(
 	var err error
 
 	err = j.fillRequestFromUrlValues(w, r, request, j.router.RouteParams(r))
+	if err != nil {
+		return
+	}
 	err = j.fillRequestFromBody(w, r, request)
 
 	if err != nil {

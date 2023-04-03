@@ -28,12 +28,13 @@ func (l PgxLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data
 			}
 		}
 	}
+
 	switch level {
-	case 6, 5, 4:
+	case pgx.LogLevelTrace, pgx.LogLevelDebug, pgx.LogLevelInfo:
 		l.logger.Debug(ctx, msg, params...)
-	case 3:
+	case pgx.LogLevelWarn:
 		l.logger.Info(ctx, msg, params...)
-	case 2:
+	case pgx.LogLevelError:
 		l.logger.Warn(ctx, msg, params...)
 	}
 }

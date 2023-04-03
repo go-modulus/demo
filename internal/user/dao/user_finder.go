@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"boilerplate/internal/framework"
+	gorm2 "boilerplate/internal/gorm"
 	userQuery "boilerplate/internal/user/dao/query"
 	"boilerplate/internal/user/dto"
 	"context"
@@ -28,7 +28,7 @@ func (f *UserFinder) OneByQuery(query *userQuery.UserQuery) (*dto.User, error) {
 	res := query.Build().Limit(1).Scan(&user)
 
 	if res.Error != nil {
-		return nil, framework.NewGormError(res.Error)
+		return nil, gorm2.NewGormError(res.Error)
 	}
 
 	return user, nil
@@ -40,7 +40,7 @@ func (f *UserFinder) ListByQuery(query *userQuery.UserQuery, count int) ([]*dto.
 	res := query.Build().Limit(count).Scan(&users)
 
 	if res.Error != nil {
-		return nil, framework.NewGormError(res.Error)
+		return nil, gorm2.NewGormError(res.Error)
 	}
 
 	return users, nil
