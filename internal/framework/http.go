@@ -126,8 +126,11 @@ func WrapHandler[Req any, Resp any](
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
-		data, _ := io.ReadAll(req.Body)
-		req.Body = RequestBody{bytes.NewReader(data)}
+		var data []byte
+		if req.Body != nil {
+			data, _ = io.ReadAll(req.Body)
+			req.Body = RequestBody{bytes.NewReader(data)}
+		}
 		ctx = SetHttpRequest(ctx, req)
 		ctx = SetHttpResponseWriter(ctx, w)
 		req = req.WithContext(ctx)

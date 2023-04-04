@@ -5,6 +5,7 @@ import (
 	"boilerplate/internal/user/dao"
 	"boilerplate/internal/user/service"
 	"boilerplate/internal/user/storage"
+	"boilerplate/internal/user/storage/fixture"
 	"boilerplate/internal/user/storage/loader"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/spf13/viper"
@@ -38,6 +39,8 @@ func provide() []any {
 		loader.NewUserLoaderConfig,
 		loader.NewUserLoader,
 		loader.NewUserLoaderCache,
+
+		fixture.NewUserFixture,
 
 		func(db *pgxpool.Pool) storage.DBTX {
 			return db

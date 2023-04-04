@@ -51,6 +51,9 @@ func NewModule(config ModuleConfig) fx.Option {
 						config.PgUser + " dbname=" + config.PgDbName + " password=" + config.PgPassword +
 						" sslmode=" + config.PgSslMode
 				}
+				if config.SlowQueryLimit == 0 {
+					config.SlowQueryLimit = 100
+				}
 				return &config, nil
 			},
 		),

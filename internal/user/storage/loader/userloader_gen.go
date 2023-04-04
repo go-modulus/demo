@@ -8,7 +8,7 @@ import (
 
 	"boilerplate/internal/user/storage"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 // UserLoaderConfig captures the config to create a new UserLoader

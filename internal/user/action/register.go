@@ -5,6 +5,7 @@ import (
 	"boilerplate/internal/user/service"
 	"context"
 	"github.com/ggicci/httpin"
+	"github.com/gofrs/uuid"
 )
 
 type RegisterRequest struct {
@@ -13,7 +14,9 @@ type RegisterRequest struct {
 	Email string `json:"email"  validate:"required,email,max=150"`
 }
 type RegisterResponse struct {
-	Id string `json:"id"`
+	Id    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Email string    `json:"email"`
 }
 
 type RegisterAction struct {
@@ -49,7 +52,9 @@ func (a *RegisterAction) Handle(ctx context.Context, req *RegisterRequest) (Regi
 		return RegisterResponse{}, err
 	}
 	r := RegisterResponse{
-		Id: result.ID.String(),
+		Id:    result.ID,
+		Name:  result.Name,
+		Email: result.Email,
 	}
 	return r, nil
 }

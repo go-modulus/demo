@@ -7,7 +7,6 @@ import (
 	"boilerplate/internal/user/storage"
 	"context"
 	"github.com/gofrs/uuid"
-	guid "github.com/google/uuid"
 	"time"
 )
 
@@ -45,7 +44,7 @@ func (r Registration) Register(ctx context.Context, rRequest RegisterUserRequest
 
 	id, _ := uuid.NewV6()
 	request := storage.CreateUserParams{
-		ID:    guid.UUID(id),
+		ID:    id,
 		Name:  rRequest.Name,
 		Email: rRequest.Email,
 	}

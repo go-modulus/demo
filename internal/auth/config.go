@@ -3,9 +3,12 @@ package auth
 import (
 	"boilerplate/internal/auth/action"
 	"boilerplate/internal/auth/provider/local"
+	"boilerplate/internal/auth/storage"
+	"boilerplate/internal/auth/storage/fixture"
 	"boilerplate/internal/framework"
 	logger2 "github.com/go-pkgz/auth/logger"
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/spf13/viper"
 	"github.com/volatiletech/authboss/v3"
 	"github.com/wader/gormstore/v2"
@@ -67,6 +70,8 @@ func ProvidedServices() []interface{} {
 		local.NewGormStorage,
 		local.NewProvider,
 		NewAuthGuardMiddleware,
+
+		fixture.NewLocalAccountFixture,
 		func(logger framework.Logger) authboss.Logger {
 			return newLogger(logger)
 		},
@@ -75,6 +80,12 @@ func ProvidedServices() []interface{} {
 				AccountTable:        cfg.LocalAccountTable,
 				SessionIdCookieName: cfg.SessionIdCookieName,
 			}
+		},
+		func(db *pgxpool.Pool) storage.DBTX {
+			return db
+		},
+		func(db storage.DBTX) *storage.Queries {
+			return storage.New(db)
 		},
 		func(logger framework.Logger) logger2.L {
 			return newLogger(logger)

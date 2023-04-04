@@ -72,6 +72,9 @@ func NewModule(config ModuleConfig) fx.Option {
 				if err != nil {
 					return nil, err
 				}
+				if config.SlowQueryMs == 0 {
+					config.SlowQueryMs = 100
+				}
 				return &config, nil
 			},
 		),
