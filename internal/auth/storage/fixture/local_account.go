@@ -20,3 +20,8 @@ func (f *LocalAccountFixture) DeleteLocalAccount(userId uuid.UUID) int64 {
 	count, _ := f.db.DeleteLocalAccount(context.Background(), userId)
 	return count
 }
+
+func (f *LocalAccountFixture) DeleteLocalAccountByEmail(email string) int64 {
+	count, _ := f.db.DeleteLocalAccountByEmail(context.Background(), email)
+	return count
+}

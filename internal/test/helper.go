@@ -3,7 +3,9 @@ package test
 import (
 	"boilerplate/internal"
 	"boilerplate/internal/framework"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -11,6 +13,8 @@ import (
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
 	"runtime"
@@ -200,4 +204,50 @@ func IamAuthenticatedAsTestUser(ctx context.Context) (context.Context, uuid.UUID
 	id, _ := uuid.FromString("00000000-0000-0000-0000-000000000001")
 	ctx = framework.SetCurrentUserId(ctx, id.String())
 	return ctx, id
+}
+
+func CallPost(
+	routes *framework.Routes,
+	url string,
+	body map[string]any,
+	header http.Header,
+) *httptest.ResponseRecorder {
+	bodyJson, _ := json.Marshal(body)
+	reader := bytes.NewReader(bodyJson)
+
+	req, _ := http.NewRequest("POST", url, reader)
+	if header != nil {
+		req.Header = header
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	var handler http.Handler
+	routesInfo := routes.GetRoutesInfo()
+	for _, info := range routesInfo {
+		if info.Method() == "POST" && pathMatchUrl(info.Path(), url) {
+			handler = info.Handler()
+		}
+	}
+	handler.ServeHTTP(rr, req)
+	return rr
+}
+
+func pathMatchUrl(path string, url string) bool {
+	pathParts := strings.Split(path, "/")
+	urlParts := strings.Split(url, "/")
+
+	if len(pathParts) != len(urlParts) {
+		return false
+	}
+	for i, part := range pathParts {
+		if part != urlParts[i] {
+			if !(strings.HasPrefix(part, "{") && strings.HasSuffix(part, "}")) &&
+				part != "*" {
+				return false
+			}
+		}
+
+	}
+	return true
 }

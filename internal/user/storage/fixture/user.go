@@ -40,3 +40,7 @@ func (f *UserFixture) CreateParticularUser(id uuid.UUID, name string) (storage.U
 func (f *UserFixture) DeleteUser(id uuid.UUID) {
 	_ = f.userDb.DeleteUser(context.Background(), id)
 }
+
+func (f *UserFixture) DeleteUserByEmail(email string) {
+	_ = f.userDb.DeleteUserByEmail(context.Background(), email)
+}

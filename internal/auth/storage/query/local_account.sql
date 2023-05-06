@@ -8,3 +8,6 @@ VALUES (@user_id::uuid, @email, @nickname,
 
 -- name: DeleteLocalAccount :execrows
 delete from auth.local_account where user_id = @user_id::uuid;
+
+-- name: DeleteLocalAccountByEmail :execrows
+delete from auth.local_account where email = @email::text;

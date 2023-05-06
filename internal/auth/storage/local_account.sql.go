@@ -59,3 +59,15 @@ func (q *Queries) DeleteLocalAccount(ctx context.Context, userID uuid.UUID) (int
 	}
 	return result.RowsAffected(), nil
 }
+
+const deleteLocalAccountByEmail = `-- name: DeleteLocalAccountByEmail :execrows
+delete from auth.local_account where email = $1::text
+`
+
+func (q *Queries) DeleteLocalAccountByEmail(ctx context.Context, email string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteLocalAccountByEmail, email)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}

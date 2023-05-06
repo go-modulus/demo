@@ -2,12 +2,12 @@ package action_test
 
 import (
 	"boilerplate/internal/framework"
+	"boilerplate/internal/test"
 	"boilerplate/internal/test/expect"
 	"boilerplate/internal/test/spec"
 	"boilerplate/internal/user/action"
 	"context"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -45,26 +45,30 @@ func TestRegisterAction_Handle(t *testing.T) {
 
 	t.Run(
 		"call API", func(t *testing.T) {
-			req, _ := http.NewRequest("POST", "/users", nil)
+			email := "test@test.com"
 			routes := framework.NewRoutes()
 			_ = action.InitRegisterAction(routes, errorHandler, registerAction)
+			rr := test.CallPost(
+				routes, "/users", map[string]interface{}{
+					"name":  "test",
+					"email": email,
+				}, nil,
+			)
 
-			rr := httptest.NewRecorder()
-			var handler http.Handler
-			routesInfo := routes.GetRoutesInfo()
-			for _, info := range routesInfo {
-				if info.Method() == "POST" && info.Path() == "/users" {
-					handler = info.Handler()
-				}
-			}
-			handler.ServeHTTP(rr, req)
-			body := rr.Body.String()
-			if status := rr.Code; status != http.StatusOK {
-				t.Errorf("Wrong status")
-			}
-			if body == "" {
-				t.Errorf("Empty body")
-			}
+			defer userFixture.DeleteUserByEmail(email)
+			defer localAccountFixture.DeleteLocalAccountByEmail(email)
+
+			spec.When(t, "try to register with valid data")
+			spec.Then(t, "should return status 201", expect.Equal(http.StatusCreated, rr.Code))
+			spec.ThenHasJson(
+				t,
+				"should return user with sent data",
+				map[string]interface{}{
+					"name":  "test1",
+					"email": email,
+				},
+				rr.Body.Bytes(),
+			)
 		},
 	)
 }

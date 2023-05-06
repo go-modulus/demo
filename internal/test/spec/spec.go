@@ -4,7 +4,9 @@ import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/test/expect"
 	"context"
+	"encoding/json"
 	"github.com/gofrs/uuid"
+	"github.com/nsf/jsondiff"
 	"testing"
 )
 
@@ -39,6 +41,31 @@ func Then(t *testing.T, message string, expectations ...expect.Expectation) bool
 
 	t.Log(green + assertionPrefix + message + reset)
 
+	return true
+}
+
+func ThenHasJson(
+	t *testing.T,
+	message string,
+	expected map[string]interface{},
+	actualJson []byte,
+) bool {
+	t.Helper()
+	expectedJson, _ := json.Marshal(expected)
+	opt := jsondiff.DefaultConsoleOptions()
+	opt.SkipMatches = true
+	opt.SkippedObjectProperty = nil
+	opt.SkippedArrayElement = nil
+
+	diff, str := jsondiff.Compare(
+		actualJson,
+		expectedJson,
+		&opt,
+	)
+	if jsondiff.SupersetMatch != diff {
+		t.Errorf(red + assertionPrefix + message + reset + "\n" + str)
+		return false
+	}
 	return true
 }
 
