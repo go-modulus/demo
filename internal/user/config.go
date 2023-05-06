@@ -3,6 +3,7 @@ package user
 import (
 	"boilerplate/internal/user/action"
 	"boilerplate/internal/user/dao"
+	"boilerplate/internal/user/page"
 	"boilerplate/internal/user/service"
 	"boilerplate/internal/user/storage"
 	"boilerplate/internal/user/storage/fixture"
@@ -21,6 +22,7 @@ func invoke() []any {
 		action.InitGetUsersAction,
 		action.InitRegisterAction,
 		action.InitUpdateAction,
+		page.InitGetUsersPage,
 	}
 }
 

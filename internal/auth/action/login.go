@@ -36,7 +36,7 @@ func InitLoginAction(
 		return err
 	}
 	routes.Post(
-		"/auth/local/login",
+		"/api/auth/local/login",
 		loginUser,
 	)
 

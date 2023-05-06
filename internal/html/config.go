@@ -22,7 +22,7 @@ func providedServices() []interface{} {
 func NewModule(config ModuleConfig) fx.Option {
 	return fx.Options(
 		fx.Module(
-			"auth",
+			"html",
 			fx.Provide(
 				append(
 					providedServices(),

@@ -37,7 +37,7 @@ func InitRegisterAction(
 	if err != nil {
 		return err
 	}
-	routes.Post("/users", registerUser)
+	routes.Post("/api/users", registerUser)
 
 	return nil
 }

@@ -34,7 +34,7 @@ func (p *UserQuery) NotInIds(ids []string) *UserQuery {
 	if len(ids) == 0 {
 		return p
 	}
-	p.Db = p.Db.Where(UserTable+".id IN (?)", ids)
+	p.Db = p.Db.Where("NOT ("+UserTable+".id IN (?))", ids)
 	return p
 }
 

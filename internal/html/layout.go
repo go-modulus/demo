@@ -1,7 +1,6 @@
 package html
 
 import (
-	"boilerplate/internal/auth/widget"
 	"boilerplate/internal/framework"
 	"embed"
 	"html/template"
@@ -43,12 +42,9 @@ type AjaxPage interface {
 	framework.Layout
 }
 
-func NewIndexPage(
-	currentUserWidget widget.CurrentUserWidget,
-) (IndexPage, error) {
+func NewIndexPage() (IndexPage, error) {
 	return framework.NewPage(indexLayout).
-		WithBlocks(errTemplate.Templates()).
-		WithWidget(currentUserWidget), nil
+		WithBlocks(errTemplate.Templates()), nil
 }
 
 func NewAjaxPage() AjaxPage {
