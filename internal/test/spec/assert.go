@@ -3,7 +3,7 @@ package spec
 import (
 	baseAssert "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 )
@@ -11,7 +11,7 @@ import (
 func Equal(msg string, t *testing.T, expected any, actual any) bool {
 	t.Helper()
 	res := baseAssert.Equal(t, expected, actual, red+msg+reset)
-	if res == true {
+	if res {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -20,7 +20,7 @@ func Equal(msg string, t *testing.T, expected any, actual any) bool {
 func NotEqual(msg string, t *testing.T, expected any, actual any) bool {
 	t.Helper()
 	res := baseAssert.NotEqual(t, expected, actual, red+msg+reset)
-	if res == true {
+	if res {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -29,7 +29,7 @@ func NotEqual(msg string, t *testing.T, expected any, actual any) bool {
 func Nil(msg string, t *testing.T, val any) bool {
 	t.Helper()
 	res := baseAssert.Nil(t, val, red+msg+reset)
-	if res == true {
+	if res {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -38,7 +38,7 @@ func Nil(msg string, t *testing.T, val any) bool {
 func NotNil(msg string, t *testing.T, val any) bool {
 	t.Helper()
 	res := baseAssert.NotNil(t, val, red+msg+reset)
-	if res == true {
+	if res {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -47,7 +47,7 @@ func NotNil(msg string, t *testing.T, val any) bool {
 func False(msg string, t *testing.T, val bool) bool {
 	t.Helper()
 	res := baseAssert.False(t, val, red+msg+reset)
-	if res == true {
+	if res {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -56,7 +56,7 @@ func False(msg string, t *testing.T, val bool) bool {
 func True(msg string, t *testing.T, val bool) bool {
 	t.Helper()
 	//res := baseAssert.True(t, val, red+msg+reset)
-	if val == true {
+	if val {
 		t.Log(green + assertionPrefix + msg + reset)
 		return true
 	}
@@ -69,7 +69,7 @@ func NoError(t *testing.T, msg string, err error) bool {
 	t.Helper()
 	res := baseAssert.Nil(t, err, red+msg+reset)
 	res2 := baseAssert.NoError(t, err, red+msg+reset)
-	if res && res2 == true {
+	if res && res2 {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -78,7 +78,7 @@ func NoError(t *testing.T, msg string, err error) bool {
 func HasError(t *testing.T, msg string, err error) bool {
 	t.Helper()
 	res := baseAssert.Error(t, err, red+msg+reset)
-	if res == true {
+	if res {
 		t.Log(green + assertionPrefix + msg + reset)
 	}
 	return res
@@ -107,7 +107,7 @@ func MockedMethodIsCalled(
 	isCalled := m.Parent.AssertCalled(t, m.Method, arguments...)
 	m.Unset()
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 	if !isCalled {
 		t.Log(red + assertionPrefix + msg + reset + "\n" + string(out))

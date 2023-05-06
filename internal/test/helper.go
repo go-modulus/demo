@@ -35,7 +35,7 @@ func TestMain(m *testing.M, modules ...fx.Option) {
 			},
 		),
 	)
-	Invoke(modules...)
+	_ = Invoke(modules...)
 
 	code := m.Run()
 	teardown()
@@ -146,7 +146,7 @@ func RemoveFromDb(table string, fields map[string]any) bool {
 
 func GetServiceFromContainer[T any]() T {
 	var instance T
-	Invoke(
+	_ = Invoke(
 		fx.Invoke(
 			func(
 				d1 T,
@@ -183,7 +183,7 @@ func Invoke(options ...fx.Option) error {
 
 func GetServiceFromContainerWithMocks[T any](mocks []any) T {
 	var instance T
-	Invoke(
+	_ = Invoke(
 		fx.Invoke(
 			func(
 				d1 T,

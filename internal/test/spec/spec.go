@@ -44,7 +44,7 @@ func Then(t *testing.T, message string, expectations ...expect.Expectation) bool
 	return true
 }
 
-func ThenHasJson(
+func ThenJsonContains(
 	t *testing.T,
 	message string,
 	expected map[string]interface{},

@@ -60,11 +60,11 @@ func TestRegisterAction_Handle(t *testing.T) {
 
 			spec.When(t, "try to register with valid data")
 			spec.Then(t, "should return status 201", expect.Equal(http.StatusCreated, rr.Code))
-			spec.ThenHasJson(
+			spec.ThenJsonContains(
 				t,
 				"should return user with sent data",
 				map[string]interface{}{
-					"name":  "test1",
+					"name":  "test",
 					"email": email,
 				},
 				rr.Body.Bytes(),

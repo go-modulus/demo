@@ -78,7 +78,7 @@ func NewGorm(
 		func(_ context.Context, err error) bool {
 			_, ok := err.(*GormError)
 
-			return ok == false
+			return !ok
 		},
 	)
 

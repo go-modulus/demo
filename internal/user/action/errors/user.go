@@ -2,7 +2,6 @@ package errors
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	application "github.com/debugger84/modulus-application"
 )
@@ -15,7 +14,7 @@ func CannotUpdateUser(ctx context.Context, id string) *application.ActionRespons
 		Error: &application.ActionError{
 			Ctx:              ctx,
 			Identifier:       cannotUpdateUser,
-			Err:              errors.New(fmt.Sprintf("User with id %s cannot be updated", id)),
+			Err:              fmt.Errorf("User with id %s cannot be updated", id),
 			ValidationErrors: nil,
 		},
 	}
