@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 type UuidSlice []uuid.UUID

@@ -11,17 +11,16 @@ import (
 	"time"
 )
 
+var GormCommonError = framework.NewCommonError("gorm.commonError", "Gorm error")
+
 type GormError struct {
-	Base     framework.Error
+	Base     *framework.CommonError
 	Previous error
 }
 
 func NewGormError(err error) *GormError {
 	return &GormError{
-		Base: framework.Error{
-			Message: "Gorm error",
-			Code:    "gorm.commonError",
-		},
+		Base:     GormCommonError,
 		Previous: err,
 	}
 }

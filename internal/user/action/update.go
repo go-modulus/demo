@@ -2,14 +2,13 @@ package action
 
 import (
 	"boilerplate/internal/framework"
-	"boilerplate/internal/user/action/errors"
 	"boilerplate/internal/user/dao"
 	"context"
-	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
-	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
+
+var CannotUpdateUser = framework.NewCommonError("CannotUpdateUser", "Cannot update user %s")
 
 type UpdateRequest struct {
 	httpin.JSONBody
@@ -35,33 +34,35 @@ func NewUpdateAction(
 	return &UpdateAction{finder: finder, saver: saver, logger: logger}
 }
 
-func (a *UpdateAction) Register(chi chi.Router, errorHandler *framework.HttpErrorHandler) error {
-	updateUser, err := framework.WrapHandler[*UpdateRequest](errorHandler, a)
+func InitUpdateAction(
+	routes *framework.Routes,
+	errorHandler *framework.HttpErrorHandler,
+	action *UpdateAction,
+) error {
+	updateUser, err := framework.WrapHandler[*UpdateRequest, UpdateResponse](errorHandler, action, 200)
 
 	if err != nil {
 		return err
 	}
-	chi.Put("/users", updateUser)
+	routes.Put("/users", updateUser)
 
 	return nil
 }
 
-func (a *UpdateAction) Handle(ctx context.Context, request *UpdateRequest) (*application.ActionResponse, error) {
+func (a *UpdateAction) Handle(ctx context.Context, request *UpdateRequest) (UpdateResponse, error) {
 	user, _ := a.finder.One(ctx, request.Id)
 	if user == nil {
-		return errors.UserNotFound(ctx, request.Id), nil
+		return UpdateResponse{}, UserNotFound.WithTplVariables(request.Id)
 	}
 	user.Name = request.Name
 	err := a.saver.Update(ctx, *user)
 	if err != nil {
 		a.logger.Error("error during user update", zap.Error(err))
-		return errors.CannotUpdateUser(ctx, request.Id), nil
+		return UpdateResponse{}, CannotUpdateUser.WithTplVariables(request.Id)
 	}
-	r := application.NewSuccessResponse(
-		UpdateResponse{
-			Id:   request.Id,
-			Name: user.Name,
-		},
-	)
-	return &r, nil
+	r := UpdateResponse{
+		Id:   request.Id,
+		Name: user.Name,
+	}
+	return r, nil
 }

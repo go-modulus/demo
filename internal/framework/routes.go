@@ -90,9 +90,7 @@ func (r *Routes) AddFromRoutes(routes *Routes) {
 
 func (r *Routes) GetRoutesInfo() []RouteInfo {
 	result := make([]RouteInfo, 0, len(r.routes))
-	for _, info := range r.routes {
-		result = append(result, info)
-	}
+	result = append(result, r.routes...)
 
 	return result
 }

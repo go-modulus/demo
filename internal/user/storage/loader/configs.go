@@ -4,7 +4,7 @@ import (
 	"boilerplate/internal/cache"
 	"boilerplate/internal/user/storage"
 	"context"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 	"time"
 )
 

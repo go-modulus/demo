@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{block "title" .title}}{{end}}</title>
+
+    {{block "style" .style}}{{end}}
+
+</head>
+<body>
+<div style="height: 50px; background: aqua">{{block "currentUser" .currentUser}}{{end}}</div>
+<hr>
+{{block "errors" .errors}}{{end}}
+{{block "content" .content}}{{end}}
+{{block "script" .script}}{{end}}
+</body>
+</html>

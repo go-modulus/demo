@@ -1,0 +1,27 @@
+{{define "style"}}
+    {{- /*gotype:boilerplate/internal/auth/action.CallbackResponse*/ -}}
+    <style>
+        .auth-header {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: aqua;
+        }
+    </style>
+{{ end }}
+{{ define "title" }}
+    {{- /*gotype:boilerplate/internal/auth/action.CallbackResponse*/ -}}
+    VERV id authentication - {{ .Name }}
+{{end}}
+{{define "content"}}
+    {{- /*gotype:boilerplate/internal/auth/action.CallbackResponse*/ -}}
+
+    <h1 class="auth-header">VERV id authentication</h1>
+    <p>Current username is {{ .Name }}.</p>
+    <p>Access token is {{ .AccessToken }}.</p>
+    {{- if .RefreshToken -}}
+        <p>Refresh token is {{ .RefreshToken }}.</p>
+    {{- end -}}
+    <hr>
+    {{ block "currentUser" .}}{{ end }}
+{{end}}

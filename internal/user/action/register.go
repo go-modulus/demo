@@ -4,8 +4,8 @@ import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/user/service"
 	"context"
-	application "github.com/debugger84/modulus-application"
 	"github.com/ggicci/httpin"
+	"github.com/gofrs/uuid"
 )
 
 type RegisterRequest struct {
@@ -14,7 +14,9 @@ type RegisterRequest struct {
 	Email string `json:"email"  validate:"required,email,max=150"`
 }
 type RegisterResponse struct {
-	Id string `json:"id"`
+	Id    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Email string    `json:"email"`
 }
 
 type RegisterAction struct {
@@ -25,8 +27,12 @@ func NewRegisterAction(registration *service.Registration) *RegisterAction {
 	return &RegisterAction{registration: registration}
 }
 
-func (a *RegisterAction) Register(routes *framework.Routes, errorHandler *framework.HttpErrorHandler) error {
-	registerUser, err := framework.WrapHandler[*RegisterRequest](errorHandler, a)
+func InitRegisterAction(
+	routes *framework.Routes,
+	errorHandler *framework.HttpErrorHandler,
+	action *RegisterAction,
+) error {
+	registerUser, err := framework.WrapHandler[*RegisterRequest, RegisterResponse](errorHandler, action, 201)
 
 	if err != nil {
 		return err
@@ -36,20 +42,19 @@ func (a *RegisterAction) Register(routes *framework.Routes, errorHandler *framew
 	return nil
 }
 
-func (a *RegisterAction) Handle(ctx context.Context, req *RegisterRequest) (*application.ActionResponse, error) {
+func (a *RegisterAction) Handle(ctx context.Context, req *RegisterRequest) (RegisterResponse, error) {
 	user := service.RegisterUserRequest{
 		Name:  req.Name,
 		Email: req.Email,
 	}
 	result, err := a.registration.Register(ctx, user)
 	if err != nil {
-		r := application.NewUnprocessableEntityResponse(ctx, err)
-		return &r, nil
+		return RegisterResponse{}, err
 	}
-	r := application.NewSuccessCreationResponse(
-		RegisterResponse{
-			Id: result.ID.String(),
-		},
-	)
-	return &r, nil
+	r := RegisterResponse{
+		Id:    result.ID,
+		Name:  result.Name,
+		Email: result.Email,
+	}
+	return r, nil
 }

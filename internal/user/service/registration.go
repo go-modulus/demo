@@ -6,13 +6,11 @@ import (
 	"boilerplate/internal/user/dao"
 	"boilerplate/internal/user/storage"
 	"context"
-	application "github.com/debugger84/modulus-application"
 	"github.com/gofrs/uuid"
-	guid "github.com/google/uuid"
 	"time"
 )
 
-const emailExists application.ErrorIdentifier = "emailExists"
+var EmailExists = framework.NewCommonError("EmailExists", "Email %s already exists")
 
 type RegisterUserRequest struct {
 	Name     string `json:"name"`
@@ -41,12 +39,12 @@ func NewRegistration(
 // Register returns emailExists error
 func (r Registration) Register(ctx context.Context, rRequest RegisterUserRequest) (*storage.User, error) {
 	if r.emailExist(ctx, rRequest.Email) {
-		return nil, application.NewCommonError(emailExists, "not unique email")
+		return nil, EmailExists.WithTplVariables(rRequest.Email)
 	}
 
 	id, _ := uuid.NewV6()
 	request := storage.CreateUserParams{
-		ID:    guid.UUID(id),
+		ID:    id,
 		Name:  rRequest.Name,
 		Email: rRequest.Email,
 	}

@@ -7,7 +7,6 @@ import (
 	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/dao"
 	"context"
-	application "github.com/debugger84/modulus-application"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -42,12 +41,13 @@ func NewGetUsersAction(finder *dao.UserFinder) *GetUsersAction {
 	return &GetUsersAction{finder: finder}
 }
 
-func (a *GetUsersAction) Register(
+func InitGetUsersAction(
 	auth *auth.Auth,
 	routes *framework.Routes,
 	errorHandler *framework.HttpErrorHandler,
+	action *GetUsersAction,
 ) error {
-	getUsers, err := framework.WrapHandler[*GetUsersRequest](errorHandler, a)
+	getUsers, err := framework.WrapHandler[*GetUsersRequest, UsersResponse](errorHandler, action, 200)
 
 	if err != nil {
 		return err
@@ -57,13 +57,13 @@ func (a *GetUsersAction) Register(
 	return nil
 }
 
-func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (*application.ActionResponse, error) {
+func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (UsersResponse, error) {
 	userId := context2.GetCurrentUserId(ctx)
 	query := a.finder.CreateQuery(ctx)
 	query.NotInIds([]string{userId}).NewerFirst()
 	users, err := a.finder.ListByQuery(query, req.Count)
 	if err != nil {
-		return nil, err
+		return UsersResponse{}, err
 	}
 
 	response := make([]UserResponse, len(users))
@@ -71,10 +71,8 @@ func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (*app
 		response[i] = UserResponse{Id: user.Id, Name: user.Name}
 	}
 
-	r := application.NewSuccessResponse(
-		UsersResponse{
-			List: response,
-		},
-	)
-	return &r, nil
+	r := UsersResponse{
+		List: response,
+	}
+	return r, nil
 }

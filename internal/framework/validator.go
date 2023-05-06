@@ -25,7 +25,6 @@ type ValidatableStruct interface {
 type DefaultValidator struct {
 	validator  *validator.Validate
 	translator ut.Translator
-	logger     Logger
 }
 
 func NewDefaultValidator(logger Logger) StructValidator {

@@ -1,94 +1,74 @@
 package user
 
 import (
-	"boilerplate/internal/auth"
-	"boilerplate/internal/framework"
 	"boilerplate/internal/user/action"
 	"boilerplate/internal/user/dao"
-	"boilerplate/internal/user/httpaction"
 	"boilerplate/internal/user/service"
 	"boilerplate/internal/user/storage"
+	"boilerplate/internal/user/storage/fixture"
 	"boilerplate/internal/user/storage/loader"
-	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/spf13/viper"
 	"go.uber.org/fx"
 )
 
-func registerRouters(
-	chi chi.Router,
-	errorHandler *framework.HttpErrorHandler,
-	registerAction *action.RegisterAction,
-	getUserAction *action.GetUserAction,
-	getUsersAction *action.GetUsersAction,
-	updateAction *action.UpdateAction,
-	genActions *httpaction.ModuleActions,
-	routes *framework.Routes,
-	auth *auth.Auth,
-) error {
-	err := registerAction.Register(routes, errorHandler)
-	if err != nil {
-		return err
-	}
-	err = getUserAction.Register(auth, routes, errorHandler)
-	if err != nil {
-		return err
-	}
-	err = getUsersAction.Register(auth, routes, errorHandler)
-	if err != nil {
-		return err
-	}
-	err = updateAction.Register(chi, errorHandler)
-	if err != nil {
-		return err
-	}
-
-	routes.AddFromRoutes(genActions.Routes())
-	return nil
+type ModuleConfig struct {
 }
 
-func ProvidedServices() []interface{} {
-	return append(
-		httpaction.ServiceProviders(),
-		[]interface{}{
-			action.NewRegisterAction,
-			action.NewGetUserAction,
-			action.NewGetUsersAction,
-			action.NewUpdateAction,
-
-			dao.NewUserFinder,
-			dao.NewUserSaver,
-
-			service.NewRegistration,
-
-			httpaction.NewRegisterAction,
-			httpaction.NewGetUsersAction,
-
-			httpaction.NewGetUserProcessor,
-			httpaction.NewUpdateProcessor,
-
-			loader.NewUserLoaderConfig,
-			loader.NewUserLoader,
-			loader.NewUserLoaderCache,
-
-			func(db *pgxpool.Pool) storage.DBTX {
-				return db
-			},
-			func(db storage.DBTX) *storage.Queries {
-				return storage.New(db)
-			},
-			func() httpaction.TestOverride {
-				return &httpaction.Override{}
-			},
-		}...,
-	)
+func invoke() []any {
+	return []any{
+		action.InitGetUserAction,
+		action.InitGetUsersAction,
+		action.InitRegisterAction,
+		action.InitUpdateAction,
+	}
 }
 
-func UserPlugin() fx.Option {
+func provide() []any {
+	return []any{
+		action.NewRegisterAction,
+		action.NewGetUserAction,
+		action.NewGetUsersAction,
+		action.NewUpdateAction,
+
+		dao.NewUserFinder,
+		dao.NewUserSaver,
+
+		service.NewRegistration,
+
+		loader.NewUserLoaderConfig,
+		loader.NewUserLoader,
+		loader.NewUserLoaderCache,
+
+		fixture.NewUserFixture,
+
+		func(db *pgxpool.Pool) storage.DBTX {
+			return db
+		},
+		func(db storage.DBTX) *storage.Queries {
+			return storage.New(db)
+		},
+	}
+
+}
+
+func NewModule(config ModuleConfig) fx.Option {
 	return fx.Module(
 		"user",
 		fx.Provide(
-			ProvidedServices()...,
+			append(
+				provide(),
+				func(viper *viper.Viper) (*ModuleConfig, error) {
+					err := viper.Unmarshal(&config)
+					if err != nil {
+						return nil, err
+					}
+					return &config, nil
+				},
+			)...,
 		),
-		fx.Invoke(registerRouters),
+		fx.Invoke(
+			invoke()...,
+		),
 	)
 }

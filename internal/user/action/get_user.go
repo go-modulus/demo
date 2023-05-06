@@ -3,11 +3,11 @@ package action
 import (
 	"boilerplate/internal/auth"
 	"boilerplate/internal/framework"
-	actionError "boilerplate/internal/user/action/errors"
 	"boilerplate/internal/user/dao"
 	"context"
-	application "github.com/debugger84/modulus-application"
 )
+
+var UserNotFound = framework.NewCommonError("UserNotFound", "User with id %s is not found")
 
 type GetUserRequest struct {
 	Id string `json:"id" in:"path=id;required"`
@@ -26,12 +26,13 @@ func NewGetUserAction(finder *dao.UserFinder) *GetUserAction {
 	return &GetUserAction{finder: finder}
 }
 
-func (a *GetUserAction) Register(
+func InitGetUserAction(
 	auth *auth.Auth,
 	routes *framework.Routes,
 	errorHandler *framework.HttpErrorHandler,
+	action *GetUserAction,
 ) error {
-	getUser, err := framework.WrapHandler[*GetUserRequest](errorHandler, a)
+	getUser, err := framework.WrapHandler[*GetUserRequest, UserResponse](errorHandler, action, 200)
 
 	if err != nil {
 		return err
@@ -41,18 +42,17 @@ func (a *GetUserAction) Register(
 	return nil
 }
 
-func (a *GetUserAction) Handle(ctx context.Context, request *GetUserRequest) (*application.ActionResponse, error) {
+func (a *GetUserAction) Handle(ctx context.Context, request *GetUserRequest) (UserResponse, error) {
 	user, err := a.finder.One(ctx, request.Id)
 	if err != nil {
-		return nil, err
+		return UserResponse{}, err
 	}
 	if user == nil {
-		return actionError.UserNotFound(ctx, request.Id), nil
+		return UserResponse{}, UserNotFound.WithTplVariables(request.Id)
 	}
 	var response UserResponse
 	response.Id = request.Id
 	response.Name = user.Name
 
-	r := application.NewSuccessResponse(response)
-	return &r, nil
+	return response, nil
 }

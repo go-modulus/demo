@@ -1,19 +1,19 @@
 package gorm
 
 import (
+	"boilerplate/internal/framework"
 	"context"
-	application "github.com/debugger84/modulus-application"
 	"gorm.io/gorm/logger"
 	"runtime/debug"
 	"time"
 )
 
 type Logger struct {
-	application.Logger
+	framework.Logger
 	cfg *ModuleConfig
 }
 
-func NewGormLogger(cfg *ModuleConfig, logger application.Logger) *Logger {
+func NewGormLogger(cfg *ModuleConfig, logger framework.Logger) *Logger {
 	return &Logger{Logger: logger, cfg: cfg}
 }
 
