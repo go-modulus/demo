@@ -48,5 +48,6 @@ func NewIndexPage() (IndexPage, error) {
 }
 
 func NewAjaxPage() AjaxPage {
-	return framework.NewPage(ajaxLayout)
+	return framework.NewPage(ajaxLayout).
+		WithBlocks(errTemplate.Templates())
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type StructValidator interface {
-	ValidateStruct(obj any) []ValidationError
+	ValidateStruct(obj any) *ValidationErrors
 }
 
 type VarValidator interface {
@@ -19,7 +19,7 @@ type VarValidator interface {
 }
 
 type ValidatableStruct interface {
-	Validate(ctx context.Context) []ValidationError
+	Validate(ctx context.Context) *ValidationErrors
 }
 
 type DefaultValidator struct {
@@ -47,7 +47,7 @@ func NewDefaultValidator(logger Logger) StructValidator {
 	return &DefaultValidator{validator: validate, translator: translator}
 }
 
-func (v *DefaultValidator) ValidateStruct(obj any) []ValidationError {
+func (v *DefaultValidator) ValidateStruct(obj any) *ValidationErrors {
 	err := v.validator.Struct(obj)
 	if err != nil {
 		if validatorErr, ok := err.(validator.ValidationErrors); ok {
@@ -59,15 +59,17 @@ func (v *DefaultValidator) ValidateStruct(obj any) []ValidationError {
 					ErrorIdentifier(validationError.Error()),
 				)
 			}
-			return result
+			return NewValidationErrors(result)
 		} else {
-			return []ValidationError{
-				*NewValidationError(
-					"",
-					err.Error(),
-					InvalidRequest,
-				),
-			}
+			return NewValidationErrors(
+				[]ValidationError{
+					*NewValidationError(
+						"",
+						err.Error(),
+						InvalidRequest,
+					),
+				},
+			)
 		}
 	}
 	return nil

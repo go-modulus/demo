@@ -23,6 +23,7 @@ func invoke() []any {
 		action.InitRegisterAction,
 		action.InitUpdateAction,
 		page.InitGetUsersPage,
+		page.InitNewUserPage,
 	}
 }
 
@@ -32,6 +33,8 @@ func provide() []any {
 		action.NewGetUserAction,
 		action.NewGetUsersAction,
 		action.NewUpdateAction,
+
+		page.NewNewUserPage,
 
 		dao.NewUserFinder,
 		dao.NewUserSaver,

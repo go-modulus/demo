@@ -14,7 +14,7 @@ type GetUsersRequest struct {
 	Count int `in:"query=count;default=10"`
 }
 
-func (r *GetUsersRequest) Validate(ctx context.Context) []framework.ValidationError {
+func (r *GetUsersRequest) Validate(ctx context.Context) *framework.ValidationErrors {
 	err := validation.ValidateStructWithContext(
 		ctx,
 		r,

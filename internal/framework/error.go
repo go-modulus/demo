@@ -109,6 +109,63 @@ func (e ValidationError) Is(err error) bool {
 	return false
 }
 
+func (e ValidationError) Message(printer *message.Printer) string {
+	return printer.Sprintf(e.Err)
+}
+
+type ValidationErrors struct {
+	errors []ValidationError
+}
+
+func NewValidationErrors(errors []ValidationError) *ValidationErrors {
+	if len(errors) == 0 {
+		errors = []ValidationError{
+			{
+				Field:      "",
+				Identifier: UnknownError,
+				Err:        "Unknown error",
+			},
+		}
+	}
+	return &ValidationErrors{errors: errors}
+}
+
+func (e ValidationErrors) Error() string {
+	return e.errors[0].Error()
+}
+
+func (e ValidationErrors) Errors() []ValidationError {
+	return e.errors
+}
+
+func (e ValidationErrors) ErrorMessages() map[string]string {
+	messages := make(map[string]string)
+	for _, validationError := range e.errors {
+		messages[validationError.Field] = validationError.Message(p)
+	}
+	return messages
+}
+
+func (e ValidationErrors) Is(err error) bool {
+	if cErr, ok := err.(*CommonError); ok {
+		for _, validationError := range e.errors {
+			if cErr.identifier == validationError.Identifier {
+				return true
+			}
+		}
+		return false
+	}
+	if cErr, ok := err.(*ValidationError); ok {
+		for _, validationError := range e.errors {
+			if cErr.Identifier == validationError.Identifier {
+				return true
+			}
+		}
+		return false
+	}
+	return false
+}
+
 func NewServerErrorResponse(ctx context.Context, identifier ErrorIdentifier, err error) ActionResponse {
 	return ActionResponse{
 		StatusCode: 500,

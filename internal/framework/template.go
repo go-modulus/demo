@@ -9,7 +9,11 @@ import (
 
 type Layout interface {
 	WithWidget(widget Widget) *Page
-	Handler() http.HandlerFunc
+	Handler(
+		successCode int,
+		successHeaders http.Header,
+		errorHeader http.Header,
+	) http.HandlerFunc
 }
 
 type Widget interface {
@@ -168,7 +172,11 @@ func (p *Page) SetErrorHandler(errorHandler PageErrorHandler) {
 	p.errorHandler = errorHandler
 }
 
-func (p *Page) Handler() http.HandlerFunc {
+func (p *Page) Handler(
+	successCode int,
+	successHeaders http.Header,
+	errorHeader http.Header,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		data, _ := io.ReadAll(req.Body)
@@ -205,13 +213,31 @@ func (p *Page) Handler() http.HandlerFunc {
 				errors = p.errorHandler(w, req, errors)
 			}
 			tplData[p.errorVarName] = errors
+
+			if errorHeader != nil {
+				for key, headers := range errorHeader {
+					for _, header := range headers {
+						w.Header().Set(key, header)
+					}
+				}
+			}
+		} else {
+			w.WriteHeader(successCode)
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			if successHeaders != nil {
+				for key, headers := range successHeaders {
+					for _, header := range headers {
+						w.Header().Set(key, header)
+					}
+				}
+			}
 		}
+
 		err := tpl.Execute(w, tplData)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-
 	}
 }

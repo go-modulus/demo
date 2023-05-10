@@ -1,20 +1,21 @@
 {{ define "style" }}
-<style>
-    .errors {
-        color: red;
-    }
-</style>
+    <style>
+        .errors {
+            color: red;
+        }
+    </style>
 {{end}}
-{{ define "errors" }}
+{{- define "errors" -}}
     {{- /*gotype: []error*/ -}}
-    {{- if . -}}
-        <div class="errors">
-            <ul>
-                {{- range . -}}
-                    <li>{{ . }}</li>
-                {{- end -}}
-            </ul>
-        </div>
-    {{- end -}}
-
-{{end}}
+    <turbo-frame id="errors">
+        {{- if . -}}
+            <div class="errors">
+                <ul>
+                    {{- range . -}}
+                        <li>{{ . }}</li>
+                    {{- end -}}
+                </ul>
+            </div>
+        {{- end -}}
+    </turbo-frame>
+{{- end -}}

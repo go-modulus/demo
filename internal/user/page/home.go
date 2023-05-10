@@ -4,6 +4,7 @@ import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/html"
 	"boilerplate/internal/user/action"
+	"boilerplate/internal/user/page/template"
 )
 
 func InitGetUsersPage(
@@ -19,7 +20,7 @@ func InitGetUsersPage(
 	}
 	layout := indexPage.WithWidget(
 		framework.NewWidget(
-			usersTemplate,
+			template.Users,
 			ds,
 			[]string{
 				html.LayoutBlockContent.String(),
@@ -31,7 +32,7 @@ func InitGetUsersPage(
 	if err != nil {
 		return err
 	}
-	routes.Get("/", layout.Handler())
+	routes.Get("/", layout.Handler(200, nil, nil))
 
 	return nil
 }

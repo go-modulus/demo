@@ -2,9 +2,12 @@ package action
 
 import (
 	"boilerplate/internal/framework"
+	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/service"
 	"context"
 	"github.com/ggicci/httpin"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/gofrs/uuid"
 )
 
@@ -40,6 +43,26 @@ func InitRegisterAction(
 	routes.Post("/api/users", registerUser)
 
 	return nil
+}
+
+func (r *RegisterRequest) Validate(ctx context.Context) *framework.ValidationErrors {
+	err := validation.ValidateStructWithContext(
+		ctx,
+		r,
+		validation.Field(
+			&r.Name,
+			validation.Required.Error("Name is required"),
+			is.Alpha.Error("Name should be alphabetical."),
+			validation.Length(3, 20).Error("Name should be from 3 to 20 characters length."),
+		),
+		validation.Field(
+			&r.Email,
+			validation.Required.Error("Email is required"),
+			is.Email.Error("Email is not valid."),
+		),
+	)
+
+	return validator.AsAppValidationErrors(err)
 }
 
 func (a *RegisterAction) Handle(ctx context.Context, req *RegisterRequest) (RegisterResponse, error) {
