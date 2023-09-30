@@ -56,7 +56,7 @@ func (r Registration) Register(ctx context.Context, rRequest RegisterUserRequest
 	}
 	account := local.LocalAccount{
 		UserID:    user.ID.String(),
-		Email:     user.Email,
+		Email:     &user.Email,
 		Password:  rRequest.Password,
 		CreatedAt: time.Time{},
 	}

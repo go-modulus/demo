@@ -18,6 +18,7 @@ type NewUserResponse struct {
 	Name          string
 	Email         string
 	ErrorMessages map[string]string
+	IsRegistered  bool
 }
 
 type NewUserPage struct {
@@ -67,11 +68,11 @@ func InitNewUserPage(
 	routes.Get("/users/new", layout.Handler(200, nil, nil))
 
 	headers := http.Header{}
-	headers.Set("Location", "/")
-	headers.Set("Content-Type", "text/html; turbo-stream")
+	headers.Set("Location", "/ajax/users")
+	headers.Set("Content-Type", "text/vnd.turbo-stream.html")
 	errorHeaders := http.Header{}
-	errorHeaders.Set("Content-Type", "text/html; turbo-stream")
-	routes.Post("/ajax/users/new", ajaxLayout.Handler(302, headers, errorHeaders))
+	errorHeaders.Set("Content-Type", "text/vnd.turbo-stream.html")
+	routes.Post("/ajax/users/new", ajaxLayout.Handler(201, headers, errorHeaders))
 
 	return nil
 }
@@ -85,6 +86,7 @@ func (a *NewUserPage) Handle(ctx context.Context, req *NewUserRequest) (NewUserR
 		Name:          req.Name,
 		Email:         req.Email,
 		ErrorMessages: make(map[string]string),
+		IsRegistered:  false,
 	}
 	registerReq := &action.RegisterRequest{
 		Name:  req.Name,
@@ -105,8 +107,7 @@ func (a *NewUserPage) Handle(ctx context.Context, req *NewUserRequest) (NewUserR
 		}
 		return defResponse, err
 	}
-	//httpRw := framework.GetHttpResponseWriter(ctx)
-	//httpRw.WriteHeader(http.StatusFound)
-	//httpRw.Header().Set("Location", "/")
+	defResponse.IsRegistered = true
+
 	return defResponse, nil
 }

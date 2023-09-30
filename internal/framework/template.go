@@ -2,6 +2,7 @@ package framework
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -50,6 +51,7 @@ type Page struct {
 	dataSources              map[string]PageDataSource
 	dataHoldersToHandlersMap map[string]string
 	errorVarName             string
+	defaultHeaders           http.Header
 }
 
 func NewPage(layout *template.Template) *Page {
@@ -79,6 +81,7 @@ func (p *Page) clone() *Page {
 		dataHoldersToHandlersMap: dh,
 		errorVarName:             p.errorVarName,
 		errorHandler:             p.errorHandler,
+		defaultHeaders:           p.defaultHeaders,
 	}
 }
 
@@ -117,6 +120,14 @@ func (p *Page) WithBlocks(blocks []*template.Template) *Page {
 	if err != nil {
 		panic(err)
 	}
+	return newPage
+}
+
+// WithDefaultHeaders adds default headers to the responses for this page
+// Returns a new Page with the new layout
+func (p *Page) WithDefaultHeaders(defaultHeaders http.Header) *Page {
+	newPage := p.clone()
+	newPage.defaultHeaders = defaultHeaders
 	return newPage
 }
 
@@ -208,6 +219,13 @@ func (p *Page) Handler(
 			tplData[varName] = res
 		}
 
+		tplData[p.errorVarName] = []error{}
+		for key, headers := range p.defaultHeaders {
+			for _, header := range headers {
+				w.Header().Set(key, header)
+			}
+		}
+
 		if len(errors) > 0 {
 			if p.errorHandler != nil {
 				errors = p.errorHandler(w, req, errors)
@@ -222,8 +240,6 @@ func (p *Page) Handler(
 				}
 			}
 		} else {
-			w.WriteHeader(successCode)
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			if successHeaders != nil {
 				for key, headers := range successHeaders {
 					for _, header := range headers {
@@ -231,6 +247,11 @@ func (p *Page) Handler(
 					}
 				}
 			}
+			w.Header().Set(
+				"Status Code",
+				fmt.Sprintf("%d %s", successCode, http.StatusText(successCode)),
+			)
+			w.WriteHeader(successCode)
 		}
 
 		err := tpl.Execute(w, tplData)
@@ -238,6 +259,8 @@ func (p *Page) Handler(
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))
 			return
+		} else {
+			w.WriteHeader(successCode)
 		}
 	}
 }

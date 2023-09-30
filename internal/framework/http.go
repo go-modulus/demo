@@ -260,7 +260,7 @@ func WrapPageDataSource[Req any, Resp any](
 
 		if err != nil {
 			//errorHandler.Handle(err, w, req)
-			return nil, err
+			return res, err
 		}
 
 		return res, nil

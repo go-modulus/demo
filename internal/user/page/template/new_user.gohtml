@@ -16,11 +16,20 @@
     {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
     All users of the platform
 {{end}}
-{{define "content"}}
+{{define  "form"}}
     {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
-<turbo-frame id="new-user">
+
+{{end}}
+{{define "content"}}
+{{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
+<turbo-frame id="new-user" data-controller="newUser">
     <h1 class="auth-header">Register User</h1>
-    <form action="/ajax/users/new" method="post">
+    <form action="/ajax/users/new" method="post" data-newUser-target="registrationForm"
+          data-action="turbo:submit-start->newUser#disableFields"
+          id="new-user-form">
+
+        <input hidden="is_registered" data-newUser-target="isRegistered" value="{{ if .IsRegistered}}true{{else}}false{{ end }}">
+
         <div class="form-group">
             <label for="username">Username</label>
             <input type="text" id="username" placeholder="Username"
@@ -50,15 +59,40 @@
 </turbo-frame>
 {{end}}
 
+    {{define "script"}}
+    {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
+    <script type="module">
+        import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+        window.Stimulus = Application.start()
+
+        Stimulus.register("newUser", class extends Controller {
+            static targets = [ "isRegistered", "registrationForm" ]
+
+            connect() {
+                if (this.isRegisteredTarget.value === "true") {
+                    location.href = "/"
+                }
+            }
+
+            disableFields() {
+                const form = this.registrationFormTarget
+                for (const field of form.elements) {
+                    field.disabled = true
+                }
+                form.querySelector("button[type=submit]").innerHTML = "Registering..."
+                form.querySelector("button[type=submit]").disabled = true
+            }
+        })
+    </script>
+{{end}}
+
 {{define "ajaxContent"}}
+    {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
+
     <turbo-stream action="replace" target="new-user">
         <template>
             {{template "content" .}}
         </template>
     </turbo-stream>
-    <turbo-stream action="replace" target="errors">
-        <template>
-            {{template "errors" .}}
-        </template>
-    </turbo-stream>
+
 {{end}}

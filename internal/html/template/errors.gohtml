@@ -19,3 +19,10 @@
         {{- end -}}
     </turbo-frame>
 {{- end -}}
+{{- define "ajaxErrors" -}}
+<turbo-stream action="replace" target="errors">
+    <template>
+        {{template "errors" .}}
+    </template>
+</turbo-stream>
+{{- end -}}

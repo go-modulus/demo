@@ -4,6 +4,7 @@ import (
 	"boilerplate/internal/framework"
 	"embed"
 	"html/template"
+	"net/http"
 )
 
 type LayoutBlock string
@@ -42,12 +43,20 @@ type AjaxPage interface {
 	framework.Layout
 }
 
-func NewIndexPage() (IndexPage, error) {
+func NewIndexPage() IndexPage {
+	headers := http.Header{}
+
+	headers.Set("Content-Type", "text/html; charset=utf-8")
 	return framework.NewPage(indexLayout).
-		WithBlocks(errTemplate.Templates()), nil
+		WithBlocks(errTemplate.Templates()).
+		WithDefaultHeaders(headers)
 }
 
 func NewAjaxPage() AjaxPage {
+	headers := http.Header{}
+	headers.Set("Location", "/ajax/users")
+	headers.Set("Content-Type", "text/vnd.turbo-stream.html")
 	return framework.NewPage(ajaxLayout).
-		WithBlocks(errTemplate.Templates())
+		WithBlocks(errTemplate.Templates()).
+		WithDefaultHeaders(headers)
 }
