@@ -1,0 +1,23 @@
+{
+  "name": "demo-stimulus-webpack",
+  "version": "3.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=11"
+  },
+  "dependencies": {
+    "@babel/core": "^7.10.5",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "@hotwired/stimulus": "^3.2.0",
+    "@hotwired/stimulus-webpack-helpers": "^1.0.0",
+    "babel-loader": "^8.1.0",
+    "webpack": "^5.87.0",
+    "webpack-dev-middleware": "^3.7.2"
+  },
+  "devDependencies": {
+    "webpack-cli": "^5.1.4"
+  }
+}

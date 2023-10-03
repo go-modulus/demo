@@ -14,7 +14,7 @@
 {{ end }}
 {{ define "title" }}
     {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
-    All users of the platform
+    Add a new user
 {{end}}
 {{define  "form"}}
     {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
@@ -22,13 +22,13 @@
 {{end}}
 {{define "content"}}
 {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
-<turbo-frame id="new-user" data-controller="newUser">
+<turbo-frame id="new-user" data-controller="user--new-user">
     <h1 class="auth-header">Register User</h1>
-    <form action="/ajax/users/new" method="post" data-newUser-target="registrationForm"
-          data-action="turbo:submit-start->newUser#disableFields"
+    <form action="/ajax/users/new" method="post" data-user--new-user-target="registrationForm"
+          data-action="turbo:submit-start->user--new-user#disableFields"
           id="new-user-form">
 
-        <input hidden="is_registered" data-newUser-target="isRegistered" value="{{ if .IsRegistered}}true{{else}}false{{ end }}">
+        <input hidden="is_registered" data-user--new-user-target="isRegistered" value="{{ if .IsRegistered}}true{{else}}false{{ end }}">
 
         <div class="form-group">
             <label for="username">Username</label>
@@ -59,31 +59,9 @@
 </turbo-frame>
 {{end}}
 
-    {{define "script"}}
+{{define "script"}}
     {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
-    <script type="module">
-        import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
-        window.Stimulus = Application.start()
-
-        Stimulus.register("newUser", class extends Controller {
-            static targets = [ "isRegistered", "registrationForm" ]
-
-            connect() {
-                if (this.isRegisteredTarget.value === "true") {
-                    location.href = "/"
-                }
-            }
-
-            disableFields() {
-                const form = this.registrationFormTarget
-                for (const field of form.elements) {
-                    field.disabled = true
-                }
-                form.querySelector("button[type=submit]").innerHTML = "Registering..."
-                form.querySelector("button[type=submit]").disabled = true
-            }
-        })
-    </script>
+    <script src="/static/js/new-user.js"></script>
 {{end}}
 
 {{define "ajaxContent"}}
