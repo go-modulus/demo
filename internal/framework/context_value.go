@@ -5,6 +5,7 @@ import (
 	"github.com/gofrs/uuid"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"io"
 	"net/http"
 )
 
@@ -16,7 +17,11 @@ func SetHttpRequest(ctx context.Context, r *http.Request) context.Context {
 
 func GetHttpRequest(ctx context.Context) *http.Request {
 	if value := ctx.Value(contextKey("HttpRequest")); value != nil {
-		return value.(*http.Request)
+		req := value.(*http.Request)
+		if r, ok := req.Body.(io.Seeker); ok {
+			_, _ = r.Seek(0, io.SeekStart)
+		}
+		return req
 	}
 	return nil
 }

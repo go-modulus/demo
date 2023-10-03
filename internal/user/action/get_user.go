@@ -37,7 +37,7 @@ func InitGetUserAction(
 	if err != nil {
 		return err
 	}
-	routes.Get("/users/{id}", auth.AuthGuard().Auth(getUser))
+	routes.Get("/api/users/{id}", auth.AuthGuard().Auth(getUser))
 
 	return nil
 }

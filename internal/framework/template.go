@@ -2,6 +2,7 @@ package framework
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -9,7 +10,11 @@ import (
 
 type Layout interface {
 	WithWidget(widget Widget) *Page
-	Handler() http.HandlerFunc
+	Handler(
+		successCode int,
+		successHeaders http.Header,
+		errorHeader http.Header,
+	) http.HandlerFunc
 }
 
 type Widget interface {
@@ -46,6 +51,7 @@ type Page struct {
 	dataSources              map[string]PageDataSource
 	dataHoldersToHandlersMap map[string]string
 	errorVarName             string
+	defaultHeaders           http.Header
 }
 
 func NewPage(layout *template.Template) *Page {
@@ -75,6 +81,7 @@ func (p *Page) clone() *Page {
 		dataHoldersToHandlersMap: dh,
 		errorVarName:             p.errorVarName,
 		errorHandler:             p.errorHandler,
+		defaultHeaders:           p.defaultHeaders,
 	}
 }
 
@@ -113,6 +120,14 @@ func (p *Page) WithBlocks(blocks []*template.Template) *Page {
 	if err != nil {
 		panic(err)
 	}
+	return newPage
+}
+
+// WithDefaultHeaders adds default headers to the responses for this page
+// Returns a new Page with the new layout
+func (p *Page) WithDefaultHeaders(defaultHeaders http.Header) *Page {
+	newPage := p.clone()
+	newPage.defaultHeaders = defaultHeaders
 	return newPage
 }
 
@@ -168,7 +183,11 @@ func (p *Page) SetErrorHandler(errorHandler PageErrorHandler) {
 	p.errorHandler = errorHandler
 }
 
-func (p *Page) Handler() http.HandlerFunc {
+func (p *Page) Handler(
+	successCode int,
+	successHeaders http.Header,
+	errorHeader http.Header,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		data, _ := io.ReadAll(req.Body)
@@ -200,18 +219,48 @@ func (p *Page) Handler() http.HandlerFunc {
 			tplData[varName] = res
 		}
 
+		tplData[p.errorVarName] = []error{}
+		for key, headers := range p.defaultHeaders {
+			for _, header := range headers {
+				w.Header().Set(key, header)
+			}
+		}
+
 		if len(errors) > 0 {
 			if p.errorHandler != nil {
 				errors = p.errorHandler(w, req, errors)
 			}
 			tplData[p.errorVarName] = errors
+
+			if errorHeader != nil {
+				for key, headers := range errorHeader {
+					for _, header := range headers {
+						w.Header().Set(key, header)
+					}
+				}
+			}
+		} else {
+			if successHeaders != nil {
+				for key, headers := range successHeaders {
+					for _, header := range headers {
+						w.Header().Set(key, header)
+					}
+				}
+			}
+			w.Header().Set(
+				"Status Code",
+				fmt.Sprintf("%d %s", successCode, http.StatusText(successCode)),
+			)
+			w.WriteHeader(successCode)
 		}
+
 		err := tpl.Execute(w, tplData)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))
 			return
+		} else {
+			w.WriteHeader(successCode)
 		}
-
 	}
 }

@@ -1,15 +1,41 @@
 package html
 
 import (
+	"boilerplate/internal/framework"
+	"fmt"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
+	"io/fs"
+	"net/http"
+	"os"
 )
 
 type ModuleConfig struct {
 }
 
 func invoke() []any {
-	return []any{}
+
+	return []any{
+		initStaticAction,
+	}
+}
+
+func initStaticAction(
+	routes *framework.Routes,
+) error {
+	fsys := os.DirFS("static")
+	fs.WalkDir(
+		fsys, ".", func(p string, d fs.DirEntry, err error) error {
+			fmt.Println(p)
+			return nil
+		},
+	)
+
+	fsHandler := http.FileServer(http.FS(fsys))
+
+	routes.Get("/static/*path", http.StripPrefix("/static/", fsHandler).(http.HandlerFunc))
+
+	return nil
 }
 
 func providedServices() []interface{} {
@@ -22,7 +48,7 @@ func providedServices() []interface{} {
 func NewModule(config ModuleConfig) fx.Option {
 	return fx.Options(
 		fx.Module(
-			"auth",
+			"html",
 			fx.Provide(
 				append(
 					providedServices(),

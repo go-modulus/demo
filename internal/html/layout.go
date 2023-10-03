@@ -1,10 +1,10 @@
 package html
 
 import (
-	"boilerplate/internal/auth/widget"
 	"boilerplate/internal/framework"
 	"embed"
 	"html/template"
+	"net/http"
 )
 
 type LayoutBlock string
@@ -43,14 +43,20 @@ type AjaxPage interface {
 	framework.Layout
 }
 
-func NewIndexPage(
-	currentUserWidget widget.CurrentUserWidget,
-) (IndexPage, error) {
+func NewIndexPage() IndexPage {
+	headers := http.Header{}
+
+	headers.Set("Content-Type", "text/html; charset=utf-8")
 	return framework.NewPage(indexLayout).
 		WithBlocks(errTemplate.Templates()).
-		WithWidget(currentUserWidget), nil
+		WithDefaultHeaders(headers)
 }
 
 func NewAjaxPage() AjaxPage {
-	return framework.NewPage(ajaxLayout)
+	headers := http.Header{}
+	headers.Set("Location", "/ajax/users")
+	headers.Set("Content-Type", "text/vnd.turbo-stream.html")
+	return framework.NewPage(ajaxLayout).
+		WithBlocks(errTemplate.Templates()).
+		WithDefaultHeaders(headers)
 }

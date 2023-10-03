@@ -139,7 +139,7 @@ func (j *ActionRunner) runAction(
 	if validator, ok := request.(ValidatableStruct); ok {
 		validationErr := validator.Validate(r.Context())
 		if validationErr != nil {
-			j.jsonWriter.Error(w, r, NewValidationErrorResponse(r.Context(), validationErr))
+			j.jsonWriter.Error(w, r, NewValidationErrorResponse(r.Context(), validationErr.Errors()))
 			return
 		}
 	}

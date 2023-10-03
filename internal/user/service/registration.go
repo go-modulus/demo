@@ -36,7 +36,7 @@ func NewRegistration(
 	return &Registration{finder: finder, saver: saver, queries: queries, logger: logger, authProvider: authProvider}
 }
 
-// Register returns emailExists error
+// Register returns EmailExists error
 func (r Registration) Register(ctx context.Context, rRequest RegisterUserRequest) (*storage.User, error) {
 	if r.emailExist(ctx, rRequest.Email) {
 		return nil, EmailExists.WithTplVariables(rRequest.Email)
@@ -56,13 +56,14 @@ func (r Registration) Register(ctx context.Context, rRequest RegisterUserRequest
 	}
 	account := local.LocalAccount{
 		UserID:    user.ID.String(),
-		Email:     user.Email,
+		Email:     &user.Email,
 		Password:  rRequest.Password,
 		CreatedAt: time.Time{},
 	}
 	err = r.authProvider.Register(ctx, account)
 	if err != nil {
 		//@todo rollback user saving
+		_ = r.queries.DeleteUser(ctx, user.ID)
 		r.logger.Error(ctx, err.Error())
 		return nil, err
 	}

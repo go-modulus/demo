@@ -53,6 +53,23 @@ func (h HttpErrorHandler) Handle(
 			},
 		)
 	}
+	if cErr, ok := err.(*ValidationErrors); ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		p := GetTranslator(req.Context())
+		errors := make([]map[string]interface{}, len(cErr.Errors()))
+		for i, e := range cErr.Errors() {
+			errors[i] = map[string]interface{}{
+				"message": e.Message(p),
+				"code":    e.Identifier,
+			}
+		}
+		_ = json.NewEncoder(w).Encode(
+			map[string]interface{}{
+				"data":   nil,
+				"errors": errors,
+			},
+		)
+	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusInternalServerError)
 
@@ -148,7 +165,7 @@ func WrapHandler[Req any, Resp any](
 		if validatable, ok := val.(ValidatableStruct); ok {
 			validationErrs := validatable.Validate(ctx)
 			if validationErrs != nil {
-				errorHandler.Handle(validationErrs[0], w, req)
+				errorHandler.Handle(validationErrs, w, req)
 				return
 			}
 		}
@@ -243,7 +260,7 @@ func WrapPageDataSource[Req any, Resp any](
 
 		if err != nil {
 			//errorHandler.Handle(err, w, req)
-			return nil, err
+			return res, err
 		}
 
 		return res, nil

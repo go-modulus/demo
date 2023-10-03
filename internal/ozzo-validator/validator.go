@@ -7,7 +7,7 @@ import (
 
 func AsAppValidationErrors(
 	err error,
-) []framework.ValidationError {
+) *framework.ValidationErrors {
 	if err == nil {
 		return nil
 	}
@@ -26,13 +26,15 @@ func AsAppValidationErrors(
 			}
 		}
 
-		return errors
+		return framework.NewValidationErrors(errors)
 	}
-	return []framework.ValidationError{
-		{
-			Field:      "",
-			Identifier: framework.UnknownError,
-			Err:        err.Error(),
+	return framework.NewValidationErrors(
+		[]framework.ValidationError{
+			{
+				Field:      "",
+				Identifier: framework.UnknownError,
+				Err:        err.Error(),
+			},
 		},
-	}
+	)
 }

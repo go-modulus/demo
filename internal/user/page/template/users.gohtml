@@ -1,0 +1,56 @@
+{{define "style"}}
+    {{- /*gotype:boilerplate/internal/user/action.UsersResponse*/ -}}
+    <style>
+        .auth-header {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: aqua;
+        }
+    </style>
+{{ end }}
+{{ define "title" }}
+    {{- /*gotype:boilerplate/internal/user/action.UsersResponse*/ -}}
+    All users of the platform
+{{end}}
+{{define "content"}}
+    {{- /*gotype:boilerplate/internal/user/action.UsersResponse*/ -}}
+    <div id="users">
+        <div id="users-list">
+            <h1 class="auth-header">All users</h1>
+            <div class="actions">
+                <a href="/users/new">Create new user</a>
+            </div>
+            <table>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {{- range .List }}
+                    <tr>
+                        <td>{{ .Id }}</td>
+                        <td>{{ .Name }}</td>
+                        <td><a href="/users/{{ .Id }}">View</a></td>
+                        <td><a href="/users/{{ .Id }}/edit">Edit</a></td>
+                    </tr>
+                {{ else}}
+                    <tr>
+                        <td colspan="4">No users found</td>
+                    </tr>
+                {{- end }}
+            </table>
+        </div>
+    </div>
+{{end}}
+{{define "ajaxContent"}}
+    {{- /*gotype:boilerplate/internal/user/action.UsersResponse*/ -}}
+
+    <turbo-stream action="replace" target="users">
+        <template>
+            {{template "content" .}}
+        </template>
+    </turbo-stream>
+
+{{end}}

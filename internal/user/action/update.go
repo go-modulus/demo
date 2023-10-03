@@ -44,7 +44,7 @@ func InitUpdateAction(
 	if err != nil {
 		return err
 	}
-	routes.Put("/users", updateUser)
+	routes.Put("/api/users", updateUser)
 
 	return nil
 }
