@@ -1,6 +1,7 @@
 package widget
 
 import (
+	"boilerplate/internal/auth/action"
 	"boilerplate/internal/framework"
 	"embed"
 	"html/template"
@@ -19,4 +20,17 @@ var AuthTemplate = template.Must(
 
 type CurrentUserWidget interface {
 	framework.Widget
+}
+
+func NewCurrentUserWidget(
+	currentUserAction *action.CurrentUser,
+) (CurrentUserWidget, error) {
+	ds, err := framework.WrapPageDataSource[*action.CurrentUserRequest, framework.CurrentUser](nil, currentUserAction)
+	if err != nil {
+		return nil, err
+	}
+	return framework.NewWidget(
+		CurrentUserTemplate,
+		ds,
+	), nil
 }

@@ -2,18 +2,23 @@
     <style>
         .cu-wrapper {
             padding: 20px;
+            text-align: right;
         }
     </style>
 {{end}}
 {{ define "currentUser" }}
 
-    {{- /*gotype: boilerplate/internal/auth/action.CurrentUserResponse*/ -}}
-    <div class="cu-wrapper">
-        {{if  eq .CurrentUserId ""}}
-            Anonymous
-        {{else}}
-            Current user is {{.Name}}
-        {{end}}
+    {{- /*gotype: boilerplate/internal/framework.CurrentUser*/ -}}
+    <div class="row">
+        <div class="cu-wrapper">
+            {{if  eq .Id ""}}
+                <div class="col-md-12">
+                    <a href="/login">Login -></a>
+                </div>
+            {{else}}
+                Current user is {{.Roles}}
+            {{end}}
+        </div>
     </div>
 {{end}}
 {{ define "ajaxContent"}}
@@ -21,20 +26,5 @@
     {{ template "currentUser" . }}
 {{end}}
 {{define "script"}}
-    <script>
-        function cu() {
-            fetch("/auth/current-user")
-                .then(function (response) {
-                    return response.text();
-                }).then(function (html) {
-                document.querySelector(".cu-wrapper").parentElement.innerHTML = html;
-                console.log(html);
-            }).catch(function (err) {
-                // There was an error
-                console.warn('Something went wrong.', err);
-            });
-        }
 
-        cu();
-    </script>
 {{end}}

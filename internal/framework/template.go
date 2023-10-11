@@ -9,7 +9,7 @@ import (
 )
 
 type Layout interface {
-	WithWidget(widget Widget) *Page
+	WithWidget(widget Widget, dataHolderNames []string) *Page
 	Handler(
 		successCode int,
 		successHeaders http.Header,
@@ -20,17 +20,15 @@ type Layout interface {
 type Widget interface {
 	Blocks() []*template.Template
 	DataSource() PageDataSource
-	DataHolderNames() []string
 }
 
 type BaseWidget struct {
-	blocks          []*template.Template
-	dataSource      PageDataSource
-	dataHolderNames []string
+	blocks     []*template.Template
+	dataSource PageDataSource
 }
 
-func NewWidget(template *template.Template, dataSource PageDataSource, dataHolderNames []string) *BaseWidget {
-	return &BaseWidget{blocks: template.Templates(), dataSource: dataSource, dataHolderNames: dataHolderNames}
+func NewWidget(template *template.Template, dataSource PageDataSource) *BaseWidget {
+	return &BaseWidget{blocks: template.Templates(), dataSource: dataSource}
 }
 
 func (w *BaseWidget) Blocks() []*template.Template {
@@ -41,10 +39,6 @@ func (w *BaseWidget) DataSource() PageDataSource {
 	return w.dataSource
 }
 
-func (w *BaseWidget) DataHolderNames() []string {
-	return w.dataHolderNames
-}
-
 type Page struct {
 	layout                   *template.Template
 	errorHandler             PageErrorHandler
@@ -52,6 +46,7 @@ type Page struct {
 	dataHoldersToHandlersMap map[string]string
 	errorVarName             string
 	defaultHeaders           http.Header
+	templateBlocks           []*template.Template
 }
 
 func NewPage(layout *template.Template) *Page {
@@ -63,6 +58,7 @@ func NewPage(layout *template.Template) *Page {
 		errorHandler: func(w http.ResponseWriter, req *http.Request, errors []error) []error {
 			return errors
 		},
+		templateBlocks: make([]*template.Template, 0),
 	}
 }
 
@@ -91,6 +87,10 @@ func (p *Page) clone() *Page {
 // Use it only for blocks that reused in every page
 // Use WithBlocks instead for a block that has uniq content for each page
 func (p *Page) addBlocks(blocks []*template.Template) error {
+	p.templateBlocks = append(p.templateBlocks, blocks...)
+	return p.parseBlocks(blocks)
+}
+func (p *Page) parseBlocks(blocks []*template.Template) error {
 	layoutBlocksMap := make(map[string]*template.Template)
 
 	for _, el := range p.layout.Templates() {
@@ -104,7 +104,7 @@ func (p *Page) addBlocks(blocks []*template.Template) error {
 				return err
 			}
 			el = elComposite
-
+			layoutBlocksMap[el.Name()] = el
 		}
 
 		template.Must(p.layout.AddParseTree(el.Name(), el.Tree))
@@ -164,13 +164,14 @@ func (p *Page) WithDataSource(
 // Returns a new Page with the new layout
 func (p *Page) WithWidget(
 	widget Widget,
+	dataHolderNames []string,
 ) *Page {
 	newPage := p.clone()
 	err := newPage.addBlocks(widget.Blocks())
 	if err != nil {
 		panic(err)
 	}
-	newPage.setDataSource(widget.DataSource(), widget.DataHolderNames())
+	newPage.setDataSource(widget.DataSource(), dataHolderNames)
 
 	return newPage
 }

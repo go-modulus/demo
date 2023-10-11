@@ -3,11 +3,13 @@ package migrator
 import (
 	framework2 "boilerplate/internal/framework"
 	"context"
+	"io/fs"
+	"net/url"
+
 	"github.com/amacneil/dbmate/v2/pkg/dbmate"
 	_ "github.com/amacneil/dbmate/v2/pkg/driver/postgres"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
-	"net/url"
 )
 
 type Rollback struct {
@@ -44,9 +46,13 @@ func (c *Rollback) Invoke(ctx context.Context) error {
 	u, _ := url.Parse(c.cfg.GetDbUrl())
 	db := dbmate.New(u)
 	db.FS = c.cfg.FS
-	db.MigrationsDir = "."
+	migrationsDir, err := fs.Glob(c.cfg.FS, "internal/*/storage/migration")
+	if err != nil {
+		panic(err)
+	}
+	db.MigrationsDir = migrationsDir
 
-	err := db.Rollback()
+	err = db.Rollback()
 	if err != nil {
 		panic(err)
 	}

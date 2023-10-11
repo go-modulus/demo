@@ -11,7 +11,7 @@ import (
 )
 
 type GetUsersRequest struct {
-	Count int `in:"query=count;default=10"`
+	Count int `in:"query=count"`
 }
 
 func (r *GetUsersRequest) Validate(ctx context.Context) *framework.ValidationErrors {
@@ -58,6 +58,9 @@ func InitGetUsersAction(
 }
 
 func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (UsersResponse, error) {
+	if req.Count == 0 {
+		req.Count = 10
+	}
 	userId := context2.GetCurrentUserId(ctx)
 	query := a.finder.CreateQuery(ctx)
 	if userId != "" {

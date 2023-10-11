@@ -1,0 +1,17 @@
+.header {
+    background-color: #7952b3;
+    padding: 20px;
+    text-align: right;
+    color: azure;
+}
+.header h1 {
+    margin: 0;
+    text-align: left;
+}
+.header a {
+    color: azure;
+    text-decoration: none;
+}
+.header a:hover {
+    color: #f1f1f1;
+}

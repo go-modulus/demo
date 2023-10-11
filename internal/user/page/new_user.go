@@ -45,21 +45,21 @@ func InitNewUserPage(
 		framework.NewWidget(
 			template.NewUser,
 			ds,
-			[]string{
-				html.LayoutBlockContent.String(),
-				html.LayoutBlockTitle.String(),
-			},
 		),
+		[]string{
+			html.LayoutBlockContent.String(),
+			html.LayoutBlockTitle.String(),
+		},
 	)
 
 	ajaxLayout := ajaxPage.WithWidget(
 		framework.NewWidget(
 			template.NewUser,
 			ds,
-			[]string{
-				html.LayoutBlockContent.String(),
-			},
 		),
+		[]string{
+			html.LayoutBlockContent.String(),
+		},
 	)
 
 	if err != nil {

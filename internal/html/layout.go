@@ -1,6 +1,7 @@
 package html
 
 import (
+	"boilerplate/internal/auth/widget"
 	"boilerplate/internal/framework"
 	"embed"
 	"html/template"
@@ -43,12 +44,13 @@ type AjaxPage interface {
 	framework.Layout
 }
 
-func NewIndexPage() IndexPage {
+func NewIndexPage(currentUserWidget widget.CurrentUserWidget) IndexPage {
 	headers := http.Header{}
 
 	headers.Set("Content-Type", "text/html; charset=utf-8")
 	return framework.NewPage(indexLayout).
 		WithBlocks(errTemplate.Templates()).
+		WithWidget(currentUserWidget, []string{LayoutBlockCurrentUser.String()}).
 		WithDefaultHeaders(headers)
 }
 

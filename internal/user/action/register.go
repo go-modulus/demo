@@ -12,7 +12,7 @@ import (
 )
 
 type RegisterRequest struct {
-	httpin.JSONBody
+	httpin.BodyDecoder
 	Name  string `json:"name"  validate:"required,min=3,max=50,alphaunicode"`
 	Email string `json:"email"  validate:"required,email,max=150"`
 }

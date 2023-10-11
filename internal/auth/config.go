@@ -5,6 +5,7 @@ import (
 	"boilerplate/internal/auth/provider/local"
 	"boilerplate/internal/auth/storage"
 	"boilerplate/internal/auth/storage/fixture"
+	"boilerplate/internal/auth/widget"
 	"boilerplate/internal/framework"
 	logger2 "github.com/go-pkgz/auth/logger"
 	"github.com/gorilla/sessions"
@@ -67,9 +68,12 @@ func ProvidedServices() []interface{} {
 		NewAuth,
 		local.NewSession,
 		action.NewLoginAction,
+		action.NewCurrentUser,
 		local.NewGormStorage,
 		local.NewProvider,
 		NewAuthGuardMiddleware,
+
+		widget.NewCurrentUserWidget,
 
 		fixture.NewLocalAccountFixture,
 		func(logger framework.Logger) authboss.Logger {

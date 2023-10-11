@@ -228,12 +228,12 @@ func WrapPageDataSource[Req any, Resp any](
 		return nil, errors.New("invalid handler: second arg must be struct")
 	}
 
-	engine, err := httpin.New(reflect.New(reqArg).Interface())
-	if err != nil {
-		return nil, err
-	}
-
+	reqInterface := reflect.New(reqArg).Interface()
+	engine, err := httpin.New(reqInterface)
 	return func(w http.ResponseWriter, req *http.Request) (any, error) {
+		if err != nil {
+			return nil, err
+		}
 		ctx := req.Context()
 		data, _ := io.ReadAll(req.Body)
 		req.Body = RequestBody{bytes.NewReader(data)}

@@ -2,6 +2,10 @@
 RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 $(eval $(RUN_ARGS):;@:)
 
+define check_console
+	test -s ./bin/console ||(go build -o ./bin/console  ./cmd/console/main.go)
+endef
+
 ####################################################################################################
 ## MAIN COMMANDS
 ####################################################################################################
@@ -27,15 +31,41 @@ mocks:
 ####################################################################################################
 ## DB COMMANDS
 ####################################################################################################
+.PHONY: migrate
+migrate: ## Run migrations in both real and test databases and compiles DTOs
+	$(MAKE) db-migrate
+	$(MAKE) db-migrate-test
+	$(MAKE) generate-db
+
+.PHONY: check-migration
+check-migration: ## Run migrations on test environment, then rollback and migrate again
+	$(MAKE) db-migrate-test
+	$(MAKE) db-rollback-test
+	$(MAKE) db-migrate-test
+
+.PHONY: db-add
+db-add: ## Add a new migration, example: make db-add module_name migration_name
+	$(check_console)
+	./bin/console migrator add -m $(word 1,$(RUN_ARGS)) -n $(word 2,$(RUN_ARGS))
+
 .PHONY: db-migrate
-db-migrate: ## Run migrations in real database
-	test -s ./bin/console ||(go build -o ./bin/console  ./cmd/console/main.go)
-	./bin/console migrator migrate
+db-migrate: ## Run migrations in dev database
+	$(check_console)
+	APP_ENV=dev ./bin/console migrator migrate
+
+.PHONY: db-migrate-test
+db-migrate-test: ## Run migrations in test database
+	$(check_console)
 	APP_ENV=test ./bin/console migrator migrate
 
-db-rollback: ## Run migrations in real database
-	test -s ./bin/console ||(go build -o ./bin/console  ./cmd/console/main.go)
-	./bin/console migrator rollback
+.PHONY: db-rollback
+db-rollback: ## Rollback database migrations over the dev DB
+	$(check_console)
+	APP_ENV=dev ./bin/console migrator rollback
+
+.PHONY: db-rollback-test
+db-rollback-test: ## Rollback database migrations over the test DB
+	$(check_console)
 	APP_ENV=test ./bin/console migrator rollback
 
 ####################################################################################################
