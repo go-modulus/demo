@@ -2,6 +2,7 @@ package html
 
 import (
 	"boilerplate/internal/framework"
+	"boilerplate/internal/html/config"
 	"fmt"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
@@ -11,6 +12,12 @@ import (
 )
 
 type ModuleConfig struct {
+	EmbeddedTemplates bool `mapstructure:"HTML_EMBEDDED_TEMPLATES"`
+	UseCache          bool `mapstructure:"HTML_USE_CACHE"`
+}
+
+func (m *ModuleConfig) IsEmbeddedTemplates() bool {
+	return m.EmbeddedTemplates
 }
 
 func invoke() []any {
@@ -42,6 +49,10 @@ func providedServices() []interface{} {
 	return []any{
 		NewIndexPage,
 		NewAjaxPage,
+
+		func(config *ModuleConfig) config.HtmlConfig {
+			return config
+		},
 	}
 }
 

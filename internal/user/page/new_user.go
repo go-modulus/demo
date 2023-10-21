@@ -43,7 +43,8 @@ func InitNewUserPage(
 	}
 	layout := indexPage.WithWidget(
 		framework.NewWidget(
-			template.NewUser,
+			"new_user.gohtml",
+			template.GetTplFolder(),
 			ds,
 		),
 		[]string{
@@ -54,7 +55,8 @@ func InitNewUserPage(
 
 	ajaxLayout := ajaxPage.WithWidget(
 		framework.NewWidget(
-			template.NewUser,
+			"new_user.gohtml",
+			template.GetTplFolder(),
 			ds,
 		),
 		[]string{

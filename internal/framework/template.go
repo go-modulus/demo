@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"net/http"
+	"sync"
 )
 
 type Layout interface {
@@ -18,20 +20,39 @@ type Layout interface {
 }
 
 type Widget interface {
-	Blocks() []*template.Template
+	Blocks(useCache bool) []*template.Template
 	DataSource() PageDataSource
 }
 
 type BaseWidget struct {
-	blocks     []*template.Template
-	dataSource PageDataSource
+	templatePath string
+	fs           fs.FS
+	blocks       []*template.Template
+	dataSource   PageDataSource
+	mu           sync.Mutex
 }
 
-func NewWidget(template *template.Template, dataSource PageDataSource) *BaseWidget {
-	return &BaseWidget{blocks: template.Templates(), dataSource: dataSource}
+func NewWidget(
+	templatePath string,
+	fs fs.FS,
+	dataSource PageDataSource,
+) *BaseWidget {
+	return &BaseWidget{
+		templatePath: templatePath,
+		fs:           fs,
+		dataSource:   dataSource,
+	}
 }
 
-func (w *BaseWidget) Blocks() []*template.Template {
+func (w *BaseWidget) Blocks(useCache bool) []*template.Template {
+	reParse := !useCache
+	if reParse || w.blocks == nil {
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		w.blocks = template.Must(
+			template.ParseFS(w.fs, w.templatePath),
+		).Templates()
+	}
 	return w.blocks
 }
 
@@ -39,31 +60,52 @@ func (w *BaseWidget) DataSource() PageDataSource {
 	return w.dataSource
 }
 
+type datasourceInfo struct {
+	handler     PageDataSource
+	dataHolders []string
+}
+
 type Page struct {
 	layout                   *template.Template
+	templatePath             string
+	fs                       fs.FS
+	useCache                 bool
 	errorHandler             PageErrorHandler
-	dataSources              map[string]PageDataSource
+	dataSources              []datasourceInfo
 	dataHoldersToHandlersMap map[string]string
 	errorVarName             string
 	defaultHeaders           http.Header
 	templateBlocks           []*template.Template
+	widgets                  []Widget
+	mu                       sync.Mutex
 }
 
-func NewPage(layout *template.Template) *Page {
+func NewPage(
+	templatePath string,
+	fs fs.FS,
+	useCache bool,
+) *Page {
+	_, err := fs.Open(templatePath)
+	if err != nil {
+		panic("template file not found in the fs " + templatePath)
+	}
 	return &Page{
-		layout:                   layout,
-		dataSources:              make(map[string]PageDataSource),
+		templatePath:             templatePath,
+		fs:                       fs,
+		dataSources:              make([]datasourceInfo, 0),
+		useCache:                 useCache,
 		dataHoldersToHandlersMap: make(map[string]string),
 		errorVarName:             "errors",
 		errorHandler: func(w http.ResponseWriter, req *http.Request, errors []error) []error {
 			return errors
 		},
 		templateBlocks: make([]*template.Template, 0),
+		widgets:        make([]Widget, 0),
 	}
 }
 
 func (p *Page) clone() *Page {
-	ds := make(map[string]PageDataSource)
+	ds := make([]datasourceInfo, len(p.dataSources))
 	for k, v := range p.dataSources {
 		ds[k] = v
 	}
@@ -71,13 +113,29 @@ func (p *Page) clone() *Page {
 	for k, v := range p.dataHoldersToHandlersMap {
 		dh[k] = v
 	}
+	tplBlocks := make([]*template.Template, len(p.templateBlocks))
+	copy(tplBlocks, p.templateBlocks)
+
+	widgetsCopy := make([]Widget, len(p.widgets))
+	copy(widgetsCopy, p.widgets)
+
+	var layout *template.Template
+	if p.layout != nil {
+		layout = template.Must(p.layout.Clone())
+	}
 	return &Page{
-		layout:                   template.Must(p.layout.Clone()),
+		layout:                   layout,
+		templatePath:             p.templatePath,
+		fs:                       p.fs,
+		useCache:                 p.useCache,
+		errorHandler:             p.errorHandler,
 		dataSources:              ds,
 		dataHoldersToHandlersMap: dh,
 		errorVarName:             p.errorVarName,
-		errorHandler:             p.errorHandler,
 		defaultHeaders:           p.defaultHeaders,
+		templateBlocks:           tplBlocks,
+		widgets:                  widgetsCopy,
+		mu:                       sync.Mutex{},
 	}
 }
 
@@ -88,8 +146,14 @@ func (p *Page) clone() *Page {
 // Use WithBlocks instead for a block that has uniq content for each page
 func (p *Page) addBlocks(blocks []*template.Template) error {
 	p.templateBlocks = append(p.templateBlocks, blocks...)
-	return p.parseBlocks(blocks)
+	return nil // p.parseBlocks(blocks)
 }
+
+func (p *Page) addWidget(widget Widget) error {
+	p.widgets = append(p.widgets, widget)
+	return nil
+}
+
 func (p *Page) parseBlocks(blocks []*template.Template) error {
 	layoutBlocksMap := make(map[string]*template.Template)
 
@@ -141,14 +205,12 @@ func (p *Page) setDataSource(
 	datasource PageDataSource,
 	dataHolderNames []string,
 ) {
-	dsName := ""
-	for _, el := range dataHolderNames {
-		dsName += el
-	}
-	p.dataSources[dsName] = datasource
-	for _, el := range dataHolderNames {
-		p.dataHoldersToHandlersMap[el] = dsName
-	}
+	p.dataSources = append(
+		p.dataSources, datasourceInfo{
+			handler:     datasource,
+			dataHolders: dataHolderNames,
+		},
+	)
 }
 
 func (p *Page) WithDataSource(
@@ -167,7 +229,7 @@ func (p *Page) WithWidget(
 	dataHolderNames []string,
 ) *Page {
 	newPage := p.clone()
-	err := newPage.addBlocks(widget.Blocks())
+	err := newPage.addWidget(widget)
 	if err != nil {
 		panic(err)
 	}
@@ -197,28 +259,66 @@ func (p *Page) Handler(
 		ctx = SetHttpResponseWriter(ctx, w)
 		req = req.WithContext(ctx)
 
+		if !p.useCache || p.layout == nil {
+			err := p.fillLayout()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+		}
 		tpl := template.Must(p.layout.Clone())
 
 		tplData := make(map[string]any)
 		errors := make([]error, 0)
-		handlersResultCache := make(map[string]any)
-		for varName, handlerName := range p.dataHoldersToHandlersMap {
-			var res any
-			if cachedRes, ok := handlersResultCache[handlerName]; ok {
-				res = cachedRes
-			} else {
-				var widgetErr error
-				if handler, ok := p.dataSources[handlerName]; ok {
-					res, widgetErr = handler(w, req)
-					handlersResultCache[handlerName] = res
-					if widgetErr != nil {
-						errors = append(errors, widgetErr)
-					}
+		//datasourcesInfo := make(map[string]*datasourceInfo, len(p.dataSources))
+		//for varName, handlerName := range p.dataHoldersToHandlersMap {
+		//	if dsInfo, ok := datasourcesInfo[handlerName]; ok {
+		//		dsInfo.dataHolders = append(dsInfo.dataHolders, varName)
+		//		continue
+		//	}
+		//	dsInfo := datasourceInfo{
+		//		handler:     p.dataSources[handlerName],
+		//		dataHolders: []string{varName},
+		//	}
+		//	datasourcesInfo[handlerName] = &dsInfo
+		//}
+		wg := sync.WaitGroup{}
+		wg.Add(len(p.dataSources))
+		mu := sync.Mutex{}
+		for _, info := range p.dataSources {
+			go func(info datasourceInfo) {
+				defer wg.Done()
+				res, widgetErr := info.handler(w, req)
+				mu.Lock()
+				defer mu.Unlock()
+				if widgetErr != nil {
+					errors = append(errors, widgetErr)
 				}
-			}
-
-			tplData[varName] = res
+				for _, varName := range info.dataHolders {
+					tplData[varName] = res
+				}
+			}(info)
 		}
+		wg.Wait()
+		//handlersResultCache := make(map[string]any)
+		//for varName, handlerName := range p.dataHoldersToHandlersMap {
+		//	var res any
+		//	if cachedRes, ok := handlersResultCache[handlerName]; ok {
+		//		res = cachedRes
+		//	} else {
+		//		var widgetErr error
+		//		if handler, ok := p.dataSources[handlerName]; ok {
+		//			res, widgetErr = handler(w, req)
+		//			handlersResultCache[handlerName] = res
+		//			if widgetErr != nil {
+		//				errors = append(errors, widgetErr)
+		//			}
+		//		}
+		//	}
+		//
+		//	tplData[varName] = res
+		//}
 
 		tplData[p.errorVarName] = []error{}
 		for key, headers := range p.defaultHeaders {
@@ -260,8 +360,21 @@ func (p *Page) Handler(
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(err.Error()))
 			return
-		} else {
-			w.WriteHeader(successCode)
 		}
 	}
+}
+
+func (p *Page) fillLayout() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.layout = template.Must(template.ParseFS(p.fs, p.templatePath))
+	blocks := make([]*template.Template, 0)
+	if len(p.templateBlocks) > 0 {
+		blocks = append(blocks, p.templateBlocks...)
+	}
+	for _, widget := range p.widgets {
+		blocks = append(blocks, widget.Blocks(p.useCache)...)
+	}
+	err := p.parseBlocks(blocks)
+	return err
 }

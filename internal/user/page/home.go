@@ -21,7 +21,8 @@ func InitGetUsersPage(
 	}
 	layout := indexPage.WithWidget(
 		framework.NewWidget(
-			template.Users,
+			"users.gohtml",
+			template.GetTplFolder(),
 			ds,
 		),
 		[]string{
@@ -31,7 +32,8 @@ func InitGetUsersPage(
 	)
 	ajaxLayout := ajaxPage.WithWidget(
 		framework.NewWidget(
-			template.Users,
+			"users.gohtml",
+			template.GetTplFolder(),
 			ds,
 		),
 		[]string{

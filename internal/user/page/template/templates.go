@@ -2,16 +2,27 @@ package template
 
 import (
 	"embed"
-	"html/template"
+	"io/fs"
+	"os"
 )
 
 //go:embed *
 var tplFolder embed.FS
 
-var Users = template.Must(
-	template.ParseFS(tplFolder, "users.gohtml"),
-)
+func GetTplFolder() fs.FS {
+	if os.Getenv("APP_ENV") == "dev" {
+		return os.DirFS("internal/user/page/template")
+	}
+	return tplFolder
+}
 
-var NewUser = template.Must(
-	template.ParseFS(tplFolder, "new_user.gohtml"),
-)
+////go:embed *
+//var TplFolder embed.FS
+//
+//var Users = template.Must(
+//	template.ParseFS(TplFolder, "users.gohtml"),
+//)
+//
+//var NewUser = template.Must(
+//	template.ParseFS(TplFolder, "new_user.gohtml"),
+//)

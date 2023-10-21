@@ -20,7 +20,7 @@ func (r *GetUsersRequest) Validate(ctx context.Context) *framework.ValidationErr
 		r,
 		validation.Field(
 			&r.Count,
-			validation.Required.Error("Count is required"),
+			//validation.Required.Error("Count is required"),
 			validation.Min(1).Error("Count should be more than 0."),
 			validation.Max(10).Error("Count should be less than or equal 10."),
 		),
@@ -52,7 +52,7 @@ func InitGetUsersAction(
 	if err != nil {
 		return err
 	}
-	routes.Get("/api/users", auth.AuthGuard().Auth(getUsers))
+	routes.Get("/api/users", getUsers)
 
 	return nil
 }

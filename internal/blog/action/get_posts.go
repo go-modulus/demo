@@ -58,7 +58,7 @@ func InitGetPostsAction(
 	if err != nil {
 		return err
 	}
-	routes.Get("/api/blog/posts", auth.AuthGuard().Auth(getPosts))
+	routes.Get("/api/blog/posts", getPosts)
 
 	return nil
 }
