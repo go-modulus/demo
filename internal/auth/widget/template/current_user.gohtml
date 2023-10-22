@@ -7,19 +7,20 @@
     </style>
 {{end}}
 {{ define "currentUser" }}
-
-    {{- /*gotype: boilerplate/internal/framework.CurrentUser*/ -}}
-    <div class="row">
-        <div class="cu-wrapper">
-            {{if  eq .Id ""}}
-                <div class="col-md-12">
-                    <a href="/login">Login</a>
-                </div>
-            {{else}}
-                Current user is {{.Roles}}
-            {{end}}
+    {{with .currentUser}}
+        {{- /*gotype: boilerplate/internal/framework.CurrentUser*/ -}}
+        <div class="row">
+            <div class="cu-wrapper">
+                {{if  eq .Id ""}}
+                    <div class="col-md-12">
+                        <a href="/login">Login</a>
+                    </div>
+                {{else}}
+                    Current user is {{.Roles}}
+                {{end}}
+            </div>
         </div>
-    </div>
+    {{end}}
 {{end}}
 {{ define "ajaxContent"}}
     {{- /*gotype: boilerplate/internal/auth/action.CurrentUserResponse*/ -}}

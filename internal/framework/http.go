@@ -193,13 +193,25 @@ func WrapHandler[Req any, Resp any](
 	}, nil
 }
 
-type PageDataSource func(w http.ResponseWriter, req *http.Request) (any, error)
+type PageDataSource struct {
+	handler    func(w http.ResponseWriter, req *http.Request) (any, error)
+	tplVarName string
+}
+
+func (s *PageDataSource) Handle(w http.ResponseWriter, req *http.Request) (any, error) {
+	return s.handler(w, req)
+}
+
+func (s *PageDataSource) TplVarName() string {
+	return s.tplVarName
+}
+
 type PageErrorHandler func(w http.ResponseWriter, req *http.Request, errors []error) []error
 
-func WrapPageDataSource[Req any, Resp any](
-	errorHandler *HttpErrorHandler,
+func NewPageDataSource[Req any, Resp any](
+	tplVarName string,
 	handler Handler[Req, Resp],
-) (PageDataSource, error) {
+) (*PageDataSource, error) {
 	method, ok := reflect.TypeOf(handler).MethodByName("Handle")
 	if !ok {
 		return nil, errors.New("invalid handler: can`t find Handle method")
@@ -230,41 +242,44 @@ func WrapPageDataSource[Req any, Resp any](
 
 	reqInterface := reflect.New(reqArg).Interface()
 	engine, err := httpin.New(reqInterface)
-	return func(w http.ResponseWriter, req *http.Request) (any, error) {
-		if err != nil {
-			return nil, err
-		}
-		ctx := req.Context()
-		data, _ := io.ReadAll(req.Body)
-		req.Body = RequestBody{bytes.NewReader(data)}
+	return &PageDataSource{
+		handler: func(w http.ResponseWriter, req *http.Request) (any, error) {
+			if err != nil {
+				return nil, err
+			}
+			ctx := req.Context()
+			data, _ := io.ReadAll(req.Body)
+			req.Body = RequestBody{bytes.NewReader(data)}
 
-		val, err := engine.Decode(req)
-		if err != nil {
-			//errorHandler.Handle(
-			//	err,
-			//	w,
-			//	req,
-			//)
-			return nil, err
-		}
+			val, err := engine.Decode(req)
+			if err != nil {
+				//errorHandler.Handle(
+				//	err,
+				//	w,
+				//	req,
+				//)
+				return nil, err
+			}
 
-		//if validatable, ok := val.(ValidatableStruct); ok {
-		//	validationErrs := validatable.Validate(ctx)
-		//	if validationErrs != nil {
-		//		errorHandler.Handle(validationErrs[0], w, req)
-		//		return nil
-		//	}
-		//}
+			//if validatable, ok := val.(ValidatableStruct); ok {
+			//	validationErrs := validatable.Validate(ctx)
+			//	if validationErrs != nil {
+			//		errorHandler.Handle(validationErrs[0], w, req)
+			//		return nil
+			//	}
+			//}
 
-		res, err := handler.Handle(ctx, val.(Req))
+			res, err := handler.Handle(ctx, val.(Req))
 
-		if err != nil {
-			//errorHandler.Handle(err, w, req)
-			return res, err
-		}
+			if err != nil {
+				//errorHandler.Handle(err, w, req)
+				return res, err
+			}
 
-		return res, nil
+			return res, nil
 
+		},
+		tplVarName: tplVarName,
 	}, nil
 }
 

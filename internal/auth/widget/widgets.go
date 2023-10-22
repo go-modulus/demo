@@ -15,7 +15,10 @@ func NewCurrentUserWidget(
 	currentUserAction *action.CurrentUser,
 	config config.HtmlConfig,
 ) (CurrentUserWidget, error) {
-	ds, err := framework.WrapPageDataSource[*action.CurrentUserRequest, framework.CurrentUser](nil, currentUserAction)
+	ds, err := framework.NewPageDataSource[*action.CurrentUserRequest, framework.CurrentUser](
+		"currentUser",
+		currentUserAction,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 type Layout interface {
-	WithWidget(widget Widget, dataHolderNames []string) *Page
+	WithWidget(widget Widget) *Page
 	Handler(
 		successCode int,
 		successHeaders http.Header,
@@ -21,19 +21,19 @@ type Layout interface {
 
 type Widget interface {
 	Blocks() []*template.Template
-	DataSource() PageDataSource
+	DataSource() *PageDataSource
 }
 
 type BaseWidget struct {
 	templatePath string
 	fs           fs.FS
-	dataSource   PageDataSource
+	dataSource   *PageDataSource
 }
 
 func NewWidget(
 	templatePath string,
 	fs fs.FS,
-	dataSource PageDataSource,
+	dataSource *PageDataSource,
 ) *BaseWidget {
 	return &BaseWidget{
 		templatePath: templatePath,
@@ -48,13 +48,8 @@ func (w *BaseWidget) Blocks() []*template.Template {
 	).Templates()
 }
 
-func (w *BaseWidget) DataSource() PageDataSource {
+func (w *BaseWidget) DataSource() *PageDataSource {
 	return w.dataSource
-}
-
-type datasourceInfo struct {
-	handler     PageDataSource
-	dataHolders []string
 }
 
 type Page struct {
@@ -63,7 +58,7 @@ type Page struct {
 	fs             fs.FS
 	useCache       bool
 	errorHandler   PageErrorHandler
-	dataSources    []datasourceInfo
+	dataSources    []*PageDataSource
 	errorVarName   string
 	defaultHeaders http.Header
 	widgets        []Widget
@@ -82,7 +77,7 @@ func NewPage(
 	return &Page{
 		templatePath: templatePath,
 		fs:           fs,
-		dataSources:  make([]datasourceInfo, 0),
+		dataSources:  make([]*PageDataSource, 0),
 		useCache:     useCache,
 		errorVarName: "errors",
 		errorHandler: func(w http.ResponseWriter, req *http.Request, errors []error) []error {
@@ -93,7 +88,7 @@ func NewPage(
 }
 
 func (p *Page) clone() *Page {
-	ds := make([]datasourceInfo, len(p.dataSources))
+	ds := make([]*PageDataSource, len(p.dataSources))
 	for k, v := range p.dataSources {
 		ds[k] = v
 	}
@@ -138,9 +133,12 @@ func (p *Page) parseBlocks(blocks []*template.Template) error {
 				return err
 			}
 			el = elComposite
-			layoutBlocksMap[el.Name()] = el
 		}
 
+		layoutBlocksMap[el.Name()] = el
+	}
+
+	for _, el := range layoutBlocksMap {
 		template.Must(p.layout.AddParseTree(el.Name(), el.Tree))
 	}
 	return nil
@@ -161,23 +159,19 @@ func (p *Page) WithDefaultHeaders(defaultHeaders http.Header) *Page {
 // dataHolder is the data holder name. It will be populated with the data from the data source
 // Use WithDataSource instead to return a new Page with the new data source
 func (p *Page) setDataSource(
-	datasource PageDataSource,
-	dataHolderNames []string,
+	datasource *PageDataSource,
 ) {
 	p.dataSources = append(
-		p.dataSources, datasourceInfo{
-			handler:     datasource,
-			dataHolders: dataHolderNames,
-		},
+		p.dataSources,
+		datasource,
 	)
 }
 
 func (p *Page) WithDataSource(
-	datasource PageDataSource,
-	dataHolderNames []string,
+	datasource *PageDataSource,
 ) *Page {
 	newPage := p.clone()
-	newPage.setDataSource(datasource, dataHolderNames)
+	newPage.setDataSource(datasource)
 	return newPage
 }
 
@@ -185,14 +179,15 @@ func (p *Page) WithDataSource(
 // Returns a new Page with the new layout
 func (p *Page) WithWidget(
 	widget Widget,
-	dataHolderNames []string,
 ) *Page {
 	newPage := p.clone()
 	err := newPage.addWidget(widget)
 	if err != nil {
 		panic(err)
 	}
-	newPage.setDataSource(widget.DataSource(), dataHolderNames)
+	if widget.DataSource() != nil {
+		newPage.setDataSource(widget.DataSource())
+	}
 
 	return newPage
 }
@@ -233,25 +228,17 @@ func (p *Page) Handler(
 		wg := sync.WaitGroup{}
 		wg.Add(len(p.dataSources))
 		mu := sync.Mutex{}
-		for _, info := range p.dataSources {
-			go func(info datasourceInfo) {
+		for _, source := range p.dataSources {
+			go func(info *PageDataSource) {
 				defer wg.Done()
-				if info.handler == nil {
-					for _, varName := range info.dataHolders {
-						tplData[varName] = nil
-					}
-					return
-				}
-				res, widgetErr := info.handler(w, req)
+				res, widgetErr := info.Handle(w, req)
 				mu.Lock()
 				defer mu.Unlock()
 				if widgetErr != nil {
 					errors = append(errors, widgetErr)
 				}
-				for _, varName := range info.dataHolders {
-					tplData[varName] = res
-				}
-			}(info)
+				tplData[info.TplVarName()] = res
+			}(source)
 		}
 		wg.Wait()
 

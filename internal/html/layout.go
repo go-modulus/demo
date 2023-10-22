@@ -54,8 +54,8 @@ func NewIndexPage(
 		template2.GetTplFs(config.EmbeddedTemplates),
 		config.UseCache,
 	).
-		WithWidget(errorsWidget, []string{LayoutBlockErrors.String()}).
-		WithWidget(currentUserWidget, []string{LayoutBlockCurrentUser.String()}).
+		WithWidget(errorsWidget).
+		WithWidget(currentUserWidget).
 		WithDefaultHeaders(headers)
 }
 
@@ -77,6 +77,6 @@ func NewAjaxPage(
 		template2.GetTplFs(config.EmbeddedTemplates),
 		config.UseCache,
 	).
-		WithWidget(errorsWidget, []string{LayoutBlockErrors.String()}).
+		WithWidget(errorsWidget).
 		WithDefaultHeaders(headers)
 }

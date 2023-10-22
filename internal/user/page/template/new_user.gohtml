@@ -7,6 +7,7 @@
             margin-bottom: 1rem;
             color: aqua;
         }
+
         .errors {
             color: red;
         }
@@ -21,42 +22,45 @@
 
 {{end}}
 {{define "content"}}
-{{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
-<turbo-frame id="new-user" data-controller="user--new-user">
-    <h1 class="auth-header">Register User</h1>
-    <form action="/ajax/users/new" method="post" data-user--new-user-target="registrationForm"
-          data-action="turbo:submit-start->user--new-user#disableFields"
-          id="new-user-form">
+    {{ with .newUser}}
+        {{- /*gotype:boilerplate/internal/user/page.NewUserResponse*/ -}}
+        <turbo-frame id="new-user" data-controller="user--new-user">
+            <h1 class="auth-header">Register User</h1>
+            <form action="/ajax/users/new" method="post" data-user--new-user-target="registrationForm"
+                  data-action="turbo:submit-start->user--new-user#disableFields"
+                  id="new-user-form">
 
-        <input hidden="is_registered" data-user--new-user-target="isRegistered" value="{{ if .IsRegistered}}true{{else}}false{{ end }}">
+                <input hidden="is_registered" data-user--new-user-target="isRegistered"
+                       value="{{ if .IsRegistered}}true{{else}}false{{ end }}">
 
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" placeholder="Username"
-                   value="{{.Name}}"
-                   name="name" class="form-control" required>
-            {{ if .ErrorMessages.name }}
-                <div class="errors">
-                    {{ .ErrorMessages.name }}
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Username"
+                           value="{{.Name}}"
+                           name="name" class="form-control" required>
+                    {{ if .ErrorMessages.name }}
+                        <div class="errors">
+                            {{ .ErrorMessages.name }}
+                        </div>
+                    {{ end }}
                 </div>
-            {{ end }}
-        </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="text" id="email" placeholder="Email"
-                   value="{{.Email}}"
-                   name="email" class="form-control" required>
-            {{ if .ErrorMessages.email }}
-                <div class="errors">
-                    {{ .ErrorMessages.email }}
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="text" id="email" placeholder="Email"
+                           value="{{.Email}}"
+                           name="email" class="form-control" required>
+                    {{ if .ErrorMessages.email }}
+                        <div class="errors">
+                            {{ .ErrorMessages.email }}
+                        </div>
+                    {{ end }}
                 </div>
-            {{ end }}
-        </div>
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Register</button>
-        </div>
-    </form>
-</turbo-frame>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+            </form>
+        </turbo-frame>
+    {{end}}
 {{end}}
 
 {{define "script"}}

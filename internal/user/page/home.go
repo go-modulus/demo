@@ -14,7 +14,7 @@ func InitGetUsersPage(
 	indexPage html.IndexPage,
 	ajaxPage html.AjaxPage,
 ) error {
-	ds, err := framework.WrapPageDataSource[*action.GetUsersRequest, action.UsersResponse](errorHandler, actionHandler)
+	ds, err := framework.NewPageDataSource[*action.GetUsersRequest, action.UsersResponse]("users", actionHandler)
 
 	if err != nil {
 		return err
@@ -25,10 +25,6 @@ func InitGetUsersPage(
 			template.GetTplFolder(),
 			ds,
 		),
-		[]string{
-			html.LayoutBlockContent.String(),
-			html.LayoutBlockTitle.String(),
-		},
 	)
 	ajaxLayout := ajaxPage.WithWidget(
 		framework.NewWidget(
@@ -36,9 +32,6 @@ func InitGetUsersPage(
 			template.GetTplFolder(),
 			ds,
 		),
-		[]string{
-			html.LayoutBlockContent.String(),
-		},
 	)
 
 	if err != nil {

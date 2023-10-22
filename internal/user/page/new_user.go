@@ -36,7 +36,7 @@ func InitNewUserPage(
 	indexPage html.IndexPage,
 	ajaxPage html.AjaxPage,
 ) error {
-	ds, err := framework.WrapPageDataSource[*NewUserRequest, NewUserResponse](errorHandler, actionHandler)
+	ds, err := framework.NewPageDataSource[*NewUserRequest, NewUserResponse]("newUser", actionHandler)
 
 	if err != nil {
 		return err
@@ -47,10 +47,6 @@ func InitNewUserPage(
 			template.GetTplFolder(),
 			ds,
 		),
-		[]string{
-			html.LayoutBlockContent.String(),
-			html.LayoutBlockTitle.String(),
-		},
 	)
 
 	ajaxLayout := ajaxPage.WithWidget(
@@ -59,9 +55,6 @@ func InitNewUserPage(
 			template.GetTplFolder(),
 			ds,
 		),
-		[]string{
-			html.LayoutBlockContent.String(),
-		},
 	)
 
 	if err != nil {
