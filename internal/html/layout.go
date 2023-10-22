@@ -42,14 +42,19 @@ func NewIndexPage(
 	config *ModuleConfig,
 ) IndexPage {
 	headers := http.Header{}
-
 	headers.Set("Content-Type", "text/html; charset=utf-8")
+
+	errorsWidget := framework.NewWidget(
+		"errors.gohtml",
+		template2.GetTplFs(config.EmbeddedTemplates),
+		nil,
+	)
 	return framework.NewPage(
 		"index.gohtml",
 		template2.GetTplFs(config.EmbeddedTemplates),
 		config.UseCache,
 	).
-		WithBlocks(errTemplate.Templates()).
+		WithWidget(errorsWidget, []string{LayoutBlockErrors.String()}).
 		WithWidget(currentUserWidget, []string{LayoutBlockCurrentUser.String()}).
 		WithDefaultHeaders(headers)
 }
@@ -60,11 +65,18 @@ func NewAjaxPage(
 	headers := http.Header{}
 	headers.Set("Location", "/ajax/users")
 	headers.Set("Content-Type", "text/vnd.turbo-stream.html")
+
+	errorsWidget := framework.NewWidget(
+		"errors.gohtml",
+		template2.GetTplFs(config.EmbeddedTemplates),
+		nil,
+	)
+
 	return framework.NewPage(
 		"ajax_content.gohtml",
 		template2.GetTplFs(config.EmbeddedTemplates),
 		config.UseCache,
 	).
-		WithBlocks(errTemplate.Templates()).
+		WithWidget(errorsWidget, []string{LayoutBlockErrors.String()}).
 		WithDefaultHeaders(headers)
 }

@@ -20,16 +20,14 @@ type Layout interface {
 }
 
 type Widget interface {
-	Blocks(useCache bool) []*template.Template
+	Blocks() []*template.Template
 	DataSource() PageDataSource
 }
 
 type BaseWidget struct {
 	templatePath string
 	fs           fs.FS
-	blocks       []*template.Template
 	dataSource   PageDataSource
-	mu           sync.Mutex
 }
 
 func NewWidget(
@@ -44,16 +42,10 @@ func NewWidget(
 	}
 }
 
-func (w *BaseWidget) Blocks(useCache bool) []*template.Template {
-	reParse := !useCache
-	if reParse || w.blocks == nil {
-		w.mu.Lock()
-		defer w.mu.Unlock()
-		w.blocks = template.Must(
-			template.ParseFS(w.fs, w.templatePath),
-		).Templates()
-	}
-	return w.blocks
+func (w *BaseWidget) Blocks() []*template.Template {
+	return template.Must(
+		template.ParseFS(w.fs, w.templatePath),
+	).Templates()
 }
 
 func (w *BaseWidget) DataSource() PageDataSource {
@@ -66,18 +58,16 @@ type datasourceInfo struct {
 }
 
 type Page struct {
-	layout                   *template.Template
-	templatePath             string
-	fs                       fs.FS
-	useCache                 bool
-	errorHandler             PageErrorHandler
-	dataSources              []datasourceInfo
-	dataHoldersToHandlersMap map[string]string
-	errorVarName             string
-	defaultHeaders           http.Header
-	templateBlocks           []*template.Template
-	widgets                  []Widget
-	mu                       sync.Mutex
+	layout         *template.Template
+	templatePath   string
+	fs             fs.FS
+	useCache       bool
+	errorHandler   PageErrorHandler
+	dataSources    []datasourceInfo
+	errorVarName   string
+	defaultHeaders http.Header
+	widgets        []Widget
+	mu             sync.Mutex
 }
 
 func NewPage(
@@ -90,17 +80,15 @@ func NewPage(
 		panic("template file not found in the fs " + templatePath)
 	}
 	return &Page{
-		templatePath:             templatePath,
-		fs:                       fs,
-		dataSources:              make([]datasourceInfo, 0),
-		useCache:                 useCache,
-		dataHoldersToHandlersMap: make(map[string]string),
-		errorVarName:             "errors",
+		templatePath: templatePath,
+		fs:           fs,
+		dataSources:  make([]datasourceInfo, 0),
+		useCache:     useCache,
+		errorVarName: "errors",
 		errorHandler: func(w http.ResponseWriter, req *http.Request, errors []error) []error {
 			return errors
 		},
-		templateBlocks: make([]*template.Template, 0),
-		widgets:        make([]Widget, 0),
+		widgets: make([]Widget, 0),
 	}
 }
 
@@ -109,12 +97,6 @@ func (p *Page) clone() *Page {
 	for k, v := range p.dataSources {
 		ds[k] = v
 	}
-	dh := make(map[string]string)
-	for k, v := range p.dataHoldersToHandlersMap {
-		dh[k] = v
-	}
-	tplBlocks := make([]*template.Template, len(p.templateBlocks))
-	copy(tplBlocks, p.templateBlocks)
 
 	widgetsCopy := make([]Widget, len(p.widgets))
 	copy(widgetsCopy, p.widgets)
@@ -124,29 +106,17 @@ func (p *Page) clone() *Page {
 		layout = template.Must(p.layout.Clone())
 	}
 	return &Page{
-		layout:                   layout,
-		templatePath:             p.templatePath,
-		fs:                       p.fs,
-		useCache:                 p.useCache,
-		errorHandler:             p.errorHandler,
-		dataSources:              ds,
-		dataHoldersToHandlersMap: dh,
-		errorVarName:             p.errorVarName,
-		defaultHeaders:           p.defaultHeaders,
-		templateBlocks:           tplBlocks,
-		widgets:                  widgetsCopy,
-		mu:                       sync.Mutex{},
+		layout:         layout,
+		templatePath:   p.templatePath,
+		fs:             p.fs,
+		useCache:       p.useCache,
+		errorHandler:   p.errorHandler,
+		dataSources:    ds,
+		errorVarName:   p.errorVarName,
+		defaultHeaders: p.defaultHeaders,
+		widgets:        widgetsCopy,
+		mu:             sync.Mutex{},
 	}
-}
-
-// addBlocks adds blocks to the layout template
-// If the block already exists in the layout, it will be appended to the existing block
-// If the block does not exist in the layout, it will be added to the layout
-// Use it only for blocks that reused in every page
-// Use WithBlocks instead for a block that has uniq content for each page
-func (p *Page) addBlocks(blocks []*template.Template) error {
-	p.templateBlocks = append(p.templateBlocks, blocks...)
-	return nil // p.parseBlocks(blocks)
 }
 
 func (p *Page) addWidget(widget Widget) error {
@@ -174,17 +144,6 @@ func (p *Page) parseBlocks(blocks []*template.Template) error {
 		template.Must(p.layout.AddParseTree(el.Name(), el.Tree))
 	}
 	return nil
-}
-
-// WithBlocks adds blocks to the layout template
-// Returns a new Page with the new layout
-func (p *Page) WithBlocks(blocks []*template.Template) *Page {
-	newPage := p.clone()
-	err := newPage.addBlocks(blocks)
-	if err != nil {
-		panic(err)
-	}
-	return newPage
 }
 
 // WithDefaultHeaders adds default headers to the responses for this page
@@ -271,24 +230,18 @@ func (p *Page) Handler(
 
 		tplData := make(map[string]any)
 		errors := make([]error, 0)
-		//datasourcesInfo := make(map[string]*datasourceInfo, len(p.dataSources))
-		//for varName, handlerName := range p.dataHoldersToHandlersMap {
-		//	if dsInfo, ok := datasourcesInfo[handlerName]; ok {
-		//		dsInfo.dataHolders = append(dsInfo.dataHolders, varName)
-		//		continue
-		//	}
-		//	dsInfo := datasourceInfo{
-		//		handler:     p.dataSources[handlerName],
-		//		dataHolders: []string{varName},
-		//	}
-		//	datasourcesInfo[handlerName] = &dsInfo
-		//}
 		wg := sync.WaitGroup{}
 		wg.Add(len(p.dataSources))
 		mu := sync.Mutex{}
 		for _, info := range p.dataSources {
 			go func(info datasourceInfo) {
 				defer wg.Done()
+				if info.handler == nil {
+					for _, varName := range info.dataHolders {
+						tplData[varName] = nil
+					}
+					return
+				}
 				res, widgetErr := info.handler(w, req)
 				mu.Lock()
 				defer mu.Unlock()
@@ -301,24 +254,6 @@ func (p *Page) Handler(
 			}(info)
 		}
 		wg.Wait()
-		//handlersResultCache := make(map[string]any)
-		//for varName, handlerName := range p.dataHoldersToHandlersMap {
-		//	var res any
-		//	if cachedRes, ok := handlersResultCache[handlerName]; ok {
-		//		res = cachedRes
-		//	} else {
-		//		var widgetErr error
-		//		if handler, ok := p.dataSources[handlerName]; ok {
-		//			res, widgetErr = handler(w, req)
-		//			handlersResultCache[handlerName] = res
-		//			if widgetErr != nil {
-		//				errors = append(errors, widgetErr)
-		//			}
-		//		}
-		//	}
-		//
-		//	tplData[varName] = res
-		//}
 
 		tplData[p.errorVarName] = []error{}
 		for key, headers := range p.defaultHeaders {
@@ -369,11 +304,9 @@ func (p *Page) fillLayout() error {
 	defer p.mu.Unlock()
 	p.layout = template.Must(template.ParseFS(p.fs, p.templatePath))
 	blocks := make([]*template.Template, 0)
-	if len(p.templateBlocks) > 0 {
-		blocks = append(blocks, p.templateBlocks...)
-	}
+
 	for _, widget := range p.widgets {
-		blocks = append(blocks, widget.Blocks(p.useCache)...)
+		blocks = append(blocks, widget.Blocks()...)
 	}
 	err := p.parseBlocks(blocks)
 	return err
