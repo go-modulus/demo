@@ -2,6 +2,7 @@ package blog
 
 import (
 	"boilerplate/internal/blog/action"
+	"boilerplate/internal/blog/page"
 	"boilerplate/internal/blog/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/spf13/viper"
@@ -14,13 +15,17 @@ type ModuleConfig struct {
 func invoke() []any {
 	return []any{
 		action.InitGetPostsAction,
+		page.InitGetPostsPage,
+		page.InitAddPostPage,
 	}
 }
 
 func provide() []any {
 	return []any{
 
+		page.NewAddPostPage,
 		action.NewGetPostsAction,
+		action.NewAddPostAction,
 
 		storage.New,
 		func(db *pgxpool.Pool) storage.DBTX {

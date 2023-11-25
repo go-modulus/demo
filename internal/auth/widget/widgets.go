@@ -23,8 +23,9 @@ func NewCurrentUserWidget(
 		return nil, err
 	}
 	return framework.NewWidget(
-		"current_user.gohtml",
-		template.GetTplFs(config.IsEmbeddedTemplates()),
+		[]*framework.TemplatePath{
+			template.GetCurrentUser(config.IsEmbeddedTemplates()),
+		},
 		ds,
 	), nil
 }

@@ -45,13 +45,13 @@ func NewIndexPage(
 	headers.Set("Content-Type", "text/html; charset=utf-8")
 
 	errorsWidget := framework.NewWidget(
-		"errors.gohtml",
-		template2.GetTplFs(config.EmbeddedTemplates),
+		[]*framework.TemplatePath{
+			template2.GetErrors(config.EmbeddedTemplates),
+		},
 		nil,
 	)
 	return framework.NewPage(
-		"index.gohtml",
-		template2.GetTplFs(config.EmbeddedTemplates),
+		template2.GetIndex(config.EmbeddedTemplates),
 		config.UseCache,
 	).
 		WithWidget(errorsWidget).
@@ -67,14 +67,14 @@ func NewAjaxPage(
 	headers.Set("Content-Type", "text/vnd.turbo-stream.html")
 
 	errorsWidget := framework.NewWidget(
-		"errors.gohtml",
-		template2.GetTplFs(config.EmbeddedTemplates),
+		[]*framework.TemplatePath{
+			template2.GetErrors(config.EmbeddedTemplates),
+		},
 		nil,
 	)
 
 	return framework.NewPage(
-		"ajax_content.gohtml",
-		template2.GetTplFs(config.EmbeddedTemplates),
+		template2.GetAjaxContent(config.EmbeddedTemplates),
 		config.UseCache,
 	).
 		WithWidget(errorsWidget).

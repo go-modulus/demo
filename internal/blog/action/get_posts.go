@@ -10,8 +10,8 @@ import (
 )
 
 type GetPostsRequest struct {
-	Count int `in:"query=posts_count;default=10"`
-	Page  int `in:"query=posts_page;default=1"`
+	Count int `in:"query=posts_count"`
+	Page  int `in:"query=posts_page"`
 }
 
 func (r *GetPostsRequest) Validate(ctx context.Context) *framework.ValidationErrors {
@@ -64,6 +64,12 @@ func InitGetPostsAction(
 }
 
 func (a *GetPostsAction) Handle(ctx context.Context, req *GetPostsRequest) (PostsResponse, error) {
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.Count == 0 {
+		req.Count = 10
+	}
 	if err := req.Validate(ctx); err != nil {
 		return PostsResponse{}, err
 	}

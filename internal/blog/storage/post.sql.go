@@ -12,7 +12,8 @@ import (
 )
 
 const countPosts = `-- name: CountPosts :one
-select count(*) as count from blog."post" as p
+select count(*) as count
+from blog."post" as p
 `
 
 func (q *Queries) CountPosts(ctx context.Context) (int64, error) {
@@ -24,7 +25,8 @@ func (q *Queries) CountPosts(ctx context.Context) (int64, error) {
 
 const createPost = `-- name: CreatePost :one
 insert into blog."post" (id, title, body, author_id, slug)
-values ($1, $2, $3, $4, $5) RETURNING id, title, body, author_id, slug, status, created_at, published_at, updated_at
+values ($1, $2, $3, $4, $5)
+RETURNING id, title, body, author_id, slug, status, created_at, published_at, updated_at
 `
 
 type CreatePostParams struct {
@@ -59,7 +61,9 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 }
 
 const deletePost = `-- name: DeletePost :exec
-delete from blog."post" where id = $1::uuid
+delete
+from blog."post"
+where id = $1::uuid
 `
 
 func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
@@ -68,7 +72,10 @@ func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
 }
 
 const getPost = `-- name: GetPost :one
-select id, title, body, author_id, slug, status, created_at, published_at, updated_at from blog."post" where id = $1::uuid LIMIT 1
+select id, title, body, author_id, slug, status, created_at, published_at, updated_at
+from blog."post"
+where id = $1::uuid
+LIMIT 1
 `
 
 func (q *Queries) GetPost(ctx context.Context, id uuid.UUID) (Post, error) {
@@ -89,7 +96,10 @@ func (q *Queries) GetPost(ctx context.Context, id uuid.UUID) (Post, error) {
 }
 
 const listPosts = `-- name: ListPosts :many
-select p.id, p.title, p.body, p.author_id, p.slug, p.status, p.created_at, p.published_at, p.updated_at from blog."post" as p order by p.published_at desc limit $2 offset $1
+select p.id, p.title, p.body, p.author_id, p.slug, p.status, p.created_at, p.published_at, p.updated_at
+from blog."post" as p
+order by p.published_at desc
+limit $2 offset $1
 `
 
 type ListPostsParams struct {
@@ -125,4 +135,29 @@ func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const publishPost = `-- name: PublishPost :one
+update blog."post"
+set published_at = now(),
+status = 'published'
+where id = $1::uuid
+RETURNING id, title, body, author_id, slug, status, created_at, published_at, updated_at
+`
+
+func (q *Queries) PublishPost(ctx context.Context, id uuid.UUID) (Post, error) {
+	row := q.db.QueryRow(ctx, publishPost, id)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Body,
+		&i.AuthorID,
+		&i.Slug,
+		&i.Status,
+		&i.CreatedAt,
+		&i.PublishedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

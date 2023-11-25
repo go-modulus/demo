@@ -1,6 +1,7 @@
 package template
 
 import (
+	"boilerplate/internal/framework"
 	"embed"
 	"io/fs"
 	"os"
@@ -14,4 +15,19 @@ func GetTplFs(embedded bool) fs.FS {
 		return tplFolder
 	}
 	return os.DirFS("internal/html/template")
+}
+
+func GetErrors(embedded bool) *framework.TemplatePath {
+	tplFs := GetTplFs(embedded)
+	return framework.NewTemplatePath("errors.gohtml", tplFs)
+}
+
+func GetIndex(embedded bool) *framework.TemplatePath {
+	tplFs := GetTplFs(embedded)
+	return framework.NewTemplatePath("index.gohtml", tplFs)
+}
+
+func GetAjaxContent(embedded bool) *framework.TemplatePath {
+	tplFs := GetTplFs(embedded)
+	return framework.NewTemplatePath("ajax_content.gohtml", tplFs)
 }

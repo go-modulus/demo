@@ -25,27 +25,42 @@ type Widget interface {
 }
 
 type BaseWidget struct {
-	templatePath string
+	templatePaths []*TemplatePath
+	dataSource    *PageDataSource
+}
+
+type TemplatePath struct {
+	relativePath string
 	fs           fs.FS
-	dataSource   *PageDataSource
+}
+
+func NewTemplatePath(
+	relativePath string,
+	fs fs.FS,
+) *TemplatePath {
+	return &TemplatePath{
+		relativePath: relativePath,
+		fs:           fs,
+	}
 }
 
 func NewWidget(
-	templatePath string,
-	fs fs.FS,
+	templatePaths []*TemplatePath,
 	dataSource *PageDataSource,
 ) *BaseWidget {
 	return &BaseWidget{
-		templatePath: templatePath,
-		fs:           fs,
-		dataSource:   dataSource,
+		templatePaths: templatePaths,
+		dataSource:    dataSource,
 	}
 }
 
 func (w *BaseWidget) Blocks() []*template.Template {
-	return template.Must(
-		template.ParseFS(w.fs, w.templatePath),
-	).Templates()
+	blocks := make([]*template.Template, 0)
+	for _, path := range w.templatePaths {
+		tpl := template.Must(template.ParseFS(path.fs, path.relativePath))
+		blocks = append(blocks, tpl.Templates()...)
+	}
+	return blocks
 }
 
 func (w *BaseWidget) DataSource() *PageDataSource {
@@ -54,8 +69,7 @@ func (w *BaseWidget) DataSource() *PageDataSource {
 
 type Page struct {
 	layout         *template.Template
-	templatePath   string
-	fs             fs.FS
+	templatePath   *TemplatePath
 	useCache       bool
 	errorHandler   PageErrorHandler
 	dataSources    []*PageDataSource
@@ -66,17 +80,15 @@ type Page struct {
 }
 
 func NewPage(
-	templatePath string,
-	fs fs.FS,
+	templatePath *TemplatePath,
 	useCache bool,
 ) *Page {
-	_, err := fs.Open(templatePath)
+	_, err := templatePath.fs.Open(templatePath.relativePath)
 	if err != nil {
-		panic("template file not found in the fs " + templatePath)
+		panic("template file not found in the fs " + templatePath.relativePath)
 	}
 	return &Page{
 		templatePath: templatePath,
-		fs:           fs,
 		dataSources:  make([]*PageDataSource, 0),
 		useCache:     useCache,
 		errorVarName: "errors",
@@ -103,7 +115,6 @@ func (p *Page) clone() *Page {
 	return &Page{
 		layout:         layout,
 		templatePath:   p.templatePath,
-		fs:             p.fs,
 		useCache:       p.useCache,
 		errorHandler:   p.errorHandler,
 		dataSources:    ds,
@@ -289,7 +300,7 @@ func (p *Page) Handler(
 func (p *Page) fillLayout() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.layout = template.Must(template.ParseFS(p.fs, p.templatePath))
+	p.layout = template.Must(template.ParseFS(p.templatePath.fs, p.templatePath.relativePath))
 	blocks := make([]*template.Template, 0)
 
 	for _, widget := range p.widgets {

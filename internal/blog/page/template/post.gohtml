@@ -1,0 +1,25 @@
+{{ define "post" }}
+    {{- /*gotype:boilerplate/internal/blog/storage.Post*/ -}}
+    <div class="row blog-item">
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>{{ .Title }}</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 small">
+                    Posted by {{ .AuthorID }}
+                </div>
+                <div class="col-md-6 text-end small">
+                    {{ .PublishedAt.Time.Format "2006-01-02 15:04:05" }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    {{ .Body }}
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}

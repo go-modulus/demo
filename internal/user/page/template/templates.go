@@ -1,6 +1,7 @@
 package template
 
 import (
+	"boilerplate/internal/framework"
 	"embed"
 	"io/fs"
 	"os"
@@ -9,20 +10,19 @@ import (
 //go:embed *
 var tplFolder embed.FS
 
-func GetTplFolder() fs.FS {
-	if os.Getenv("APP_ENV") == "dev" {
-		return os.DirFS("internal/user/page/template")
+func GetTplFs(embedded bool) fs.FS {
+	if embedded {
+		return tplFolder
 	}
-	return tplFolder
+	return os.DirFS("internal/user/page/template")
 }
 
-////go:embed *
-//var TplFolder embed.FS
-//
-//var Users = template.Must(
-//	template.ParseFS(TplFolder, "users.gohtml"),
-//)
-//
-//var NewUser = template.Must(
-//	template.ParseFS(TplFolder, "new_user.gohtml"),
-//)
+func GetNewUser(embedded bool) *framework.TemplatePath {
+	tplFs := GetTplFs(embedded)
+	return framework.NewTemplatePath("new_user.gohtml", tplFs)
+}
+
+func GetUsers(embedded bool) *framework.TemplatePath {
+	tplFs := GetTplFs(embedded)
+	return framework.NewTemplatePath("users.gohtml", tplFs)
+}
