@@ -2,6 +2,10 @@
 RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 $(eval $(RUN_ARGS):;@:)
 
+define check_console
+	test -s ./bin/console ||(go build -o ./bin/console  ./cmd/console/main.go)
+endef
+
 ####################################################################################################
 ## MAIN COMMANDS
 ####################################################################################################
@@ -27,15 +31,41 @@ mocks:
 ####################################################################################################
 ## DB COMMANDS
 ####################################################################################################
+.PHONY: migrate
+migrate: ## Run migrations in both real and test databases and compiles DTOs
+	$(MAKE) db-migrate
+	$(MAKE) db-migrate-test
+	$(MAKE) generate-db
+
+.PHONY: check-migration
+check-migration: ## Run migrations on test environment, then rollback and migrate again
+	$(MAKE) db-migrate-test
+	$(MAKE) db-rollback-test
+	$(MAKE) db-migrate-test
+
+.PHONY: db-add
+db-add: ## Add a new migration, example: make db-add module_name migration_name
+	$(check_console)
+	./bin/console migrator add -m $(word 1,$(RUN_ARGS)) -n $(word 2,$(RUN_ARGS))
+
 .PHONY: db-migrate
-db-migrate: ## Run migrations in real database
-	test -s ./bin/console ||(go build -o ./bin/console  ./cmd/console/main.go)
-	./bin/console migrator migrate
+db-migrate: ## Run migrations in dev database
+	$(check_console)
+	APP_ENV=dev ./bin/console migrator migrate
+
+.PHONY: db-migrate-test
+db-migrate-test: ## Run migrations in test database
+	$(check_console)
 	APP_ENV=test ./bin/console migrator migrate
 
-db-rollback: ## Run migrations in real database
-	test -s ./bin/console ||(go build -o ./bin/console  ./cmd/console/main.go)
-	./bin/console migrator rollback
+.PHONY: db-rollback
+db-rollback: ## Rollback database migrations over the dev DB
+	$(check_console)
+	APP_ENV=dev ./bin/console migrator rollback
+
+.PHONY: db-rollback-test
+db-rollback-test: ## Rollback database migrations over the test DB
+	$(check_console)
 	APP_ENV=test ./bin/console migrator rollback
 
 ####################################################################################################
@@ -49,40 +79,3 @@ generate: ## Generate public graphql schema
 generate-db: ## Generate DTO and DAO for modules
 	test -s ./bin/sqlc ||(cd ./bin && git clone git@github.com:debugger84/sqlc.git ./sqlc-source && cd sqlc-source && go build -o ../sqlc ./cmd/sqlc/main.go && cd .. && rm -rf ./sqlc-source)
 	find . -path './internal/*/storage/sqlc.yaml' -exec ./bin/sqlc -f '{}' generate ';'
-
-
-####################################################################################################
-## PROFILER COMMANDS
-####################################################################################################
-profile-cpu:
-	export PROFILER="cpu"&&./bin/dts
-
-profile-mem:
-	export PROFILER="mem"&&./bin/dts
-
-profile-goroutine:
-	export PROFILER="goroutine"&&./bin/dts
-
-profile-block:
-	export PROFILER="block"&&./bin/dts
-
-profile-mutex:
-	export PROFILER="mutex"&&./bin/dts
-
-####################################################################################################
-## VIEW PROFILER REPORTS COMMANDS
-####################################################################################################
-view-report-cpu:
-	go tool pprof -http localhost:8111 ./profiler-reports/cpu.pprof
-
-view-report-mem:
-	go tool pprof -http localhost:8111 ./profiler-reports/mem.pprof
-
-view-report-goroutine:
-	go tool pprof -http localhost:8111 ./profiler-reports/goroutine.pprof
-
-view-report-block:
-	go tool pprof -http localhost:8111 ./profiler-reports/block.pprof
-
-view-report-mutex:
-	go tool pprof -http localhost:8111 ./profiler-reports/mutex.pprof

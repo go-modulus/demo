@@ -3,6 +3,7 @@ package page
 import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/html"
+	"boilerplate/internal/html/config"
 	"boilerplate/internal/user/action"
 	"boilerplate/internal/user/page/template"
 )
@@ -13,36 +14,33 @@ func InitGetUsersPage(
 	actionHandler *action.GetUsersAction,
 	indexPage html.IndexPage,
 	ajaxPage html.AjaxPage,
+	config config.HtmlConfig,
 ) error {
-	ds, err := framework.WrapPageDataSource[*action.GetUsersRequest, action.UsersResponse](errorHandler, actionHandler)
+	ds, err := framework.NewPageDataSource[*action.GetUsersRequest, action.UsersResponse]("users", actionHandler)
 
 	if err != nil {
 		return err
 	}
-	layout := indexPage.WithWidget(
-		framework.NewWidget(
-			template.Users,
-			ds,
-			[]string{
-				html.LayoutBlockContent.String(),
-				html.LayoutBlockTitle.String(),
-			},
-		),
-	)
+	//layout := indexPage.WithWidget(
+	//	framework.NewWidget(
+	//		"users.gohtml",
+	//		template.GetTplFs(config.IsEmbeddedTemplates()),
+	//		ds,
+	//	),
+	//)
 	ajaxLayout := ajaxPage.WithWidget(
 		framework.NewWidget(
-			template.Users,
-			ds,
-			[]string{
-				html.LayoutBlockContent.String(),
+			[]*framework.TemplatePath{
+				template.GetUsers(config.IsEmbeddedTemplates()),
 			},
+			ds,
 		),
 	)
 
 	if err != nil {
 		return err
 	}
-	routes.Get("/", layout.Handler(200, nil, nil))
+	//routes.Get("/", layout.Handler(200, nil, nil))
 	routes.Get("/ajax/users", ajaxLayout.Handler(200, nil, nil))
 
 	return nil

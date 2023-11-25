@@ -8,7 +8,7 @@ import (
 )
 
 type LoginRequest struct {
-	httpin.JSONBody
+	httpin.BodyDecoder
 	Identity   string `json:"identity"`
 	Credential string `json:"credential"`
 }

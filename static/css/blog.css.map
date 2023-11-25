@@ -1,0 +1,1 @@
+{"version":3,"file":"../css/blog.css","mappings":"AAAA;IACI,mBAAmB;IACnB,oBAAoB;IACpB,6BAA6B;AACjC,C","sources":["webpack://demo-stimulus-webpack/./internal/blog/page/css/blog.css"],"sourcesContent":[".blog-item {\n    margin-bottom: 30px;\n    padding-bottom: 30px;\n    border-bottom: 1px solid #eee;\n}"],"names":[],"sourceRoot":""}

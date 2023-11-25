@@ -1,7 +1,9 @@
 package html
 
 import (
+	"boilerplate/internal/auth/widget"
 	"boilerplate/internal/framework"
+	template2 "boilerplate/internal/html/template"
 	"embed"
 	"html/template"
 	"net/http"
@@ -23,14 +25,6 @@ func (b LayoutBlock) String() string {
 //go:embed template
 var LayoutFolder embed.FS
 
-var indexLayout = template.Must(
-	template.ParseFS(LayoutFolder, "template/index.gohtml"),
-)
-
-var ajaxLayout = template.Must(
-	template.ParseFS(LayoutFolder, "template/ajax_content.gohtml"),
-)
-
 var errTemplate = template.Must(
 	template.ParseFS(LayoutFolder, "template/errors.gohtml"),
 )
@@ -43,20 +37,46 @@ type AjaxPage interface {
 	framework.Layout
 }
 
-func NewIndexPage() IndexPage {
+func NewIndexPage(
+	currentUserWidget widget.CurrentUserWidget,
+	config *ModuleConfig,
+) IndexPage {
 	headers := http.Header{}
-
 	headers.Set("Content-Type", "text/html; charset=utf-8")
-	return framework.NewPage(indexLayout).
-		WithBlocks(errTemplate.Templates()).
+
+	errorsWidget := framework.NewWidget(
+		[]*framework.TemplatePath{
+			template2.GetErrors(config.EmbeddedTemplates),
+		},
+		nil,
+	)
+	return framework.NewPage(
+		template2.GetIndex(config.EmbeddedTemplates),
+		config.UseCache,
+	).
+		WithWidget(errorsWidget).
+		WithWidget(currentUserWidget).
 		WithDefaultHeaders(headers)
 }
 
-func NewAjaxPage() AjaxPage {
+func NewAjaxPage(
+	config *ModuleConfig,
+) AjaxPage {
 	headers := http.Header{}
 	headers.Set("Location", "/ajax/users")
 	headers.Set("Content-Type", "text/vnd.turbo-stream.html")
-	return framework.NewPage(ajaxLayout).
-		WithBlocks(errTemplate.Templates()).
+
+	errorsWidget := framework.NewWidget(
+		[]*framework.TemplatePath{
+			template2.GetErrors(config.EmbeddedTemplates),
+		},
+		nil,
+	)
+
+	return framework.NewPage(
+		template2.GetAjaxContent(config.EmbeddedTemplates),
+		config.UseCache,
+	).
+		WithWidget(errorsWidget).
 		WithDefaultHeaders(headers)
 }

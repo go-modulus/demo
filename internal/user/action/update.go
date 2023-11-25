@@ -11,7 +11,7 @@ import (
 var CannotUpdateUser = framework.NewCommonError("CannotUpdateUser", "Cannot update user %s")
 
 type UpdateRequest struct {
-	httpin.JSONBody
+	httpin.BodyDecoder
 	Id   string `in:"path=id;required"`
 	Name string `json:"name"`
 }

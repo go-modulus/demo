@@ -4,11 +4,12 @@ import (
 	framework2 "boilerplate/internal/framework"
 	"context"
 	"fmt"
+	"net/url"
+
 	"github.com/amacneil/dbmate/v2/pkg/dbmate"
 	_ "github.com/amacneil/dbmate/v2/pkg/driver/postgres"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
-	"net/url"
 )
 
 type Add struct {
@@ -60,9 +61,10 @@ func RegisterAddCommand(
 func (c *Add) Invoke(ctx context.Context, module string, name string) error {
 	u, _ := url.Parse(c.cfg.GetDbUrl())
 	db := dbmate.New(u)
-	db.MigrationsDir = "internal/" + module + "/storage/migration"
+	migrationDir := "internal/" + module + "/storage/migration"
+	db.MigrationsDir = []string{migrationDir}
 
-	fmt.Println("Add a migration to the dir:" + db.MigrationsDir)
+	fmt.Println("Add a migration to the dir:" + migrationDir)
 	err := db.NewMigration(name)
 	if err != nil {
 		return err

@@ -3,6 +3,7 @@ package page
 import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/html"
+	"boilerplate/internal/html/config"
 	"boilerplate/internal/user/action"
 	"boilerplate/internal/user/page/template"
 	"boilerplate/internal/user/service"
@@ -35,31 +36,26 @@ func InitNewUserPage(
 	actionHandler *NewUserPage,
 	indexPage html.IndexPage,
 	ajaxPage html.AjaxPage,
+	config config.HtmlConfig,
 ) error {
-	ds, err := framework.WrapPageDataSource[*NewUserRequest, NewUserResponse](errorHandler, actionHandler)
+	ds, err := framework.NewPageDataSource[*NewUserRequest, NewUserResponse]("newUser", actionHandler)
 
 	if err != nil {
 		return err
 	}
+
+	newUserWidget := framework.NewWidget(
+		[]*framework.TemplatePath{
+			template.GetNewUser(config.IsEmbeddedTemplates()),
+		},
+		ds,
+	)
 	layout := indexPage.WithWidget(
-		framework.NewWidget(
-			template.NewUser,
-			ds,
-			[]string{
-				html.LayoutBlockContent.String(),
-				html.LayoutBlockTitle.String(),
-			},
-		),
+		newUserWidget,
 	)
 
 	ajaxLayout := ajaxPage.WithWidget(
-		framework.NewWidget(
-			template.NewUser,
-			ds,
-			[]string{
-				html.LayoutBlockContent.String(),
-			},
-		),
+		newUserWidget,
 	)
 
 	if err != nil {

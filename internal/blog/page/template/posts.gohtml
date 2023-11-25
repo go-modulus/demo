@@ -1,0 +1,86 @@
+{{define "style"}}
+    <link href="/static/css/blog.css" rel="stylesheet">
+{{ end }}
+{{ define "title" }}
+    A list of blogs
+{{end}}
+{{define "content"}}
+    {{ template "posts" .posts }}
+{{end}}
+{{define "ajaxContent"}}
+    <turbo-stream action="replace" target="posts">
+        <template>
+            {{template "posts" .posts}}
+        </template>
+    </turbo-stream>
+{{end}}
+
+{{define "posts"}}
+    {{- /*gotype:boilerplate/internal/blog/action.PostsResponse*/ -}}
+    <turbo-frame id="posts" data-controller="blog--posts">
+        <div class="row">
+
+            <div class="row">
+                <div class="col-md-9">
+                    <h1>All posts</h1>
+                </div>
+                <div class="col-md-3">
+                    <div class=" d-flex align-baseline align-content-end">
+                        <form action="/ajax/blog/posts/new" method="get">
+                            <button class="btn btn-primary"
+                                    data-bs-toggle="modal" data-bs-target="#addPostModal"
+                                    data-action="click->blog--posts#openAddPopup">Create new post
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12" id="posts-list">
+                {{- range .Data }}
+                    {{- /*gotype:boilerplate/internal/blog/storage.Post*/ -}}
+                    {{ template "post" . }}
+                {{ else}}
+                    <div class="row blog-item">
+                        <div class="col-md-12">
+                            <div class="alert alert-primary d-flex align-items-center" role="alert">
+                                <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Info:">
+                                    <use xlink:href="#info-fill"/>
+                                </svg>
+                                <div>
+                                    No posts found
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {{- end }}
+
+
+            </div>
+        </div>
+
+
+    </turbo-frame>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addPostModal" tabindex="-1" aria-labelledby="addPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPostModalLabel">Add a post</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="addPostForm">
+                    <turbo-frame id="new-post" data-controller="blog--posts">
+                        Loading the content...
+                    </turbo-frame>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{{end}}
+
+{{define "script"}}
+    <script src="/static/js/blog/posts.js"></script>
+{{end}}

@@ -9,6 +9,8 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"net/http"
+	"net/http/pprof"
+	_ "net/http/pprof"
 	"regexp"
 )
 
@@ -17,6 +19,7 @@ var corsRegexp *regexp.Regexp
 type ModuleConfig struct {
 	Port                   int    `mapstructure:"HTTP_APP_PORT"`
 	CorsHost               string `mapstructure:"HTTP_CORS_HOST"`
+	EnableProfiler         bool   `mapstructure:"HTTP_ENABLE_PROFILER"`
 	RedirectTrailingSlash  bool
 	RedirectFixedPath      bool
 	HandleMethodNotAllowed bool
@@ -32,7 +35,15 @@ func ModuleHooks(
 	routes *framework2.Routes,
 	logger *zap.Logger,
 	corsMiddleware *cors.Cors,
+	config *ModuleConfig,
 ) error {
+	if config.EnableProfiler {
+		routes.Get("/debug/pprof/", pprof.Index)
+		routes.Get("/debug/pprof/cmdline", pprof.Cmdline)
+		routes.Get("/debug/pprof/profile", pprof.Profile)
+		routes.Get("/debug/pprof/symbol", pprof.Symbol)
+		routes.Get("/debug/pprof/trace", pprof.Trace)
+	}
 	lc.Append(
 		fx.Hook{
 			OnStart: func(context.Context) error {

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"boilerplate/internal/auth"
+	"boilerplate/internal/blog"
 	"boilerplate/internal/cache"
 	"boilerplate/internal/framework"
 	"boilerplate/internal/gorm"
@@ -24,5 +25,6 @@ func BaseModules() []fx.Option {
 		auth.NewModule(auth.ModuleConfig{}),
 		user.NewModule(user.ModuleConfig{}),
 		html.NewModule(html.ModuleConfig{}),
+		blog.NewModule(blog.ModuleConfig{}),
 	}
 }

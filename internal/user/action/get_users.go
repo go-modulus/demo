@@ -11,7 +11,7 @@ import (
 )
 
 type GetUsersRequest struct {
-	Count int `in:"query=count;default=10"`
+	Count int `in:"query=count"`
 }
 
 func (r *GetUsersRequest) Validate(ctx context.Context) *framework.ValidationErrors {
@@ -20,7 +20,7 @@ func (r *GetUsersRequest) Validate(ctx context.Context) *framework.ValidationErr
 		r,
 		validation.Field(
 			&r.Count,
-			validation.Required.Error("Count is required"),
+			//validation.Required.Error("Count is required"),
 			validation.Min(1).Error("Count should be more than 0."),
 			validation.Max(10).Error("Count should be less than or equal 10."),
 		),
@@ -52,12 +52,15 @@ func InitGetUsersAction(
 	if err != nil {
 		return err
 	}
-	routes.Get("/api/users", auth.AuthGuard().Auth(getUsers))
+	routes.Get("/api/users", getUsers)
 
 	return nil
 }
 
 func (a *GetUsersAction) Handle(ctx context.Context, req *GetUsersRequest) (UsersResponse, error) {
+	if req.Count == 0 {
+		req.Count = 10
+	}
 	userId := context2.GetCurrentUserId(ctx)
 	query := a.finder.CreateQuery(ctx)
 	if userId != "" {
