@@ -21,12 +21,6 @@ type AddPostRequest struct {
 	PublishImmediately bool   `json:"publish_immediately"`
 }
 
-type AddPostResponse struct {
-	Id    uuid.UUID `json:"id"`
-	Title string    `json:"title"`
-	Email string    `json:"email"`
-}
-
 type AddPostAction struct {
 	blogDb *storage.Queries
 }
