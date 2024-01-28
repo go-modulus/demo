@@ -63,8 +63,6 @@ func InitAddPostPage(
 	routes.Get("/blog/posts/new", layout.Handler(200, nil, nil))
 
 	headers := http.Header{}
-	//headers.Set("Location", "/ajax/users")
-	//headers.Set("Content-Type", "text/vnd.turbo-stream.html")
 	errorHeaders := http.Header{}
 	errorHeaders.Set("Content-Type", "text/vnd.turbo-stream.html")
 	routes.Post("/ajax/blog/posts/new", ajaxLayout.Handler(201, headers, errorHeaders))
