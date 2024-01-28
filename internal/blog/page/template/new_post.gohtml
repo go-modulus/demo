@@ -76,6 +76,11 @@
                     {{template "post" .}}
                 </template>
             </turbo-stream>
+            <turbo-stream action="replace" target="posts-not-found">
+                <template>
+
+                </template>
+            </turbo-stream>
         {{end}}
     {{end}}
 {{end}}

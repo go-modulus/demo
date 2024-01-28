@@ -7,7 +7,6 @@ import (
 	"context"
 	"github.com/ggicci/httpin"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/gofrs/uuid"
 	"regexp"
 )
@@ -51,7 +50,6 @@ func (r *AddPostRequest) Validate(ctx context.Context) *framework.ValidationErro
 		validation.Field(
 			&r.Title,
 			validation.Required.Error("Title is required"),
-			is.Alpha.Error("Title should be alphabetical."),
 			validation.Length(3, 100).Error("Title should be from 3 to 100 characters length."),
 		),
 		validation.Field(
