@@ -48,6 +48,7 @@ func NewModule() fx.Option {
 			NewAuthenticator,
 			NewApiCallerLogger,
 			NewErrorHandler,
+			NewTokenParser,
 		),
 	)
 }

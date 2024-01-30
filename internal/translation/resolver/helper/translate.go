@@ -1,7 +1,7 @@
 package helper
 
 import (
-	graphql2 "boilerplate/internal/graphql"
+	"boilerplate/internal/framework/loader"
 	translationContext "boilerplate/internal/translation/context"
 	translationLoader "boilerplate/internal/translation/resolver/loader"
 	"boilerplate/internal/translation/storage"
@@ -15,7 +15,7 @@ func TranslatePointer(
 	path storage.Path,
 	defaultValue *string,
 ) (*string, error) {
-	tLoader := graphql2.GetLoader[translationLoader.TranslationId, string](ctx, loaderFactory)
+	tLoader := loader.GetLoader[translationLoader.TranslationId, string](ctx, loaderFactory)
 
 	tag := translationContext.GetLocaleTag(ctx)
 	locale, err := storage.LocaleFromTag(tag)

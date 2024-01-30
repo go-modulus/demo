@@ -25,3 +25,18 @@ func NewAuthenticator() Authenticator {
 func (a *DefaultAuthenticator) Authenticate(ctx context.Context, token string) (*CurrentUser, error) {
 	return nil, nil
 }
+
+type TokenParser interface {
+	ParseAccessToken(ctx context.Context, accessToken string) string
+}
+
+type DefaultTokenParser struct {
+}
+
+func NewTokenParser() TokenParser {
+	return &DefaultTokenParser{}
+}
+
+func (a *DefaultTokenParser) ParseAccessToken(ctx context.Context, accessToken string) string {
+	return ""
+}

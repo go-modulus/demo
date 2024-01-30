@@ -57,4 +57,4 @@ CREATE INDEX remember_token_account_id ON auth.remember_token(account_id);
 DROP TABLE auth.remember_token;
 DROP TABLE auth.account;
 DROP TABLE auth.local_account;
-DROP SCHEMA auth;
+DROP SCHEMA auth CASCADE;
