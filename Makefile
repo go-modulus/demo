@@ -68,6 +68,11 @@ db-rollback-test: ## Rollback database migrations over the test DB
 	$(check_console)
 	APP_ENV=test ./bin/console migrator rollback
 
+db-clear-test-db: ## Rollback database migrations over the test DB
+	$(check_console)
+	APP_ENV=test ./bin/console migrator rollback-all
+	APP_ENV=test ./bin/console migrator migrate
+
 ####################################################################################################
 ## GENERATOR COMMANDS
 ####################################################################################################
@@ -79,3 +84,8 @@ generate: ## Generate public graphql schema
 generate-db: ## Generate DTO and DAO for modules
 	test -s ./bin/sqlc ||(cd ./bin && git clone git@github.com:debugger84/sqlc.git ./sqlc-source && cd sqlc-source && go build -o ../sqlc ./cmd/sqlc/main.go && cd .. && rm -rf ./sqlc-source)
 	find . -path './internal/*/storage/sqlc.yaml' -exec ./bin/sqlc -f '{}' generate ';'
+
+.PHONY: generate-translations
+generate-translations:
+	go install golang.org/x/text/cmd/gotext@latest
+	go generate ./internal/translation/translation.go

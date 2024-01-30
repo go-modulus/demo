@@ -3,10 +3,10 @@ package action_test
 import (
 	"boilerplate/internal/framework"
 	"boilerplate/internal/test"
-	"boilerplate/internal/test/expect"
 	"boilerplate/internal/test/spec"
 	"boilerplate/internal/user/action"
 	"context"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 )
@@ -26,20 +26,20 @@ func TestRegisterAction_Handle(t *testing.T) {
 			savedUser, _ := userQuery.GetUser(context.Background(), user.Id)
 			count := localAccountFixture.DeleteLocalAccount(user.Id)
 
-			spec.When(t, "try to register with valid data")
-			spec.Then(
-				t, "should return user with sent data",
-				expect.Equal("test", user.Name),
-				expect.Equal("test@test.com", user.Email),
-			)
-			spec.Then(t, "should not return error", expect.Nil(err))
+			t.Log("When try to register with valid data")
+			assert.Equal(t,
+				"test",
+				user.Name,
+				"should return user with sent data")
+			assert.NoError(t, err, "should not return error")
 
-			spec.Then(
-				t, "user is saved",
-				expect.Equal("test", savedUser.Name),
-				expect.Equal("test@test.com", savedUser.Email),
-			)
-			spec.Then(t, "local account is saved", expect.Equal(int64(1), count))
+			assert.Equal(t, "test", savedUser.Name,
+				"username is saved")
+			assert.Equal(t, "test@test.com", savedUser.Email,
+				"user's email is saved")
+
+			assert.Equal(t, int64(1), count,
+				"local account is saved")
 		},
 	)
 
@@ -58,8 +58,9 @@ func TestRegisterAction_Handle(t *testing.T) {
 			defer userFixture.DeleteUserByEmail(email)
 			defer localAccountFixture.DeleteLocalAccountByEmail(email)
 
-			spec.When(t, "try to register with valid data")
-			spec.Then(t, "should return status 201", expect.Equal(http.StatusCreated, rr.Code))
+			t.Log(t, "When try to register with valid data")
+			assert.Equal(t, http.StatusCreated, rr.Code,
+				"should return status 201")
 			spec.ThenJsonContains(
 				t,
 				"should return user with sent data",

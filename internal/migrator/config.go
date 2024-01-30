@@ -49,6 +49,7 @@ func NewModule(config ModuleConfig) fx.Option {
 			NewMigrate,
 			NewAdd,
 			NewRollback,
+			NewRollbackAll,
 			func(viper *viper.Viper) (*ModuleConfig, error) {
 				err := viper.Unmarshal(&config)
 				if err != nil {
@@ -62,6 +63,7 @@ func NewModule(config ModuleConfig) fx.Option {
 			RegisterMigrateCommand,
 			RegisterAddCommand,
 			RegisterRollbackCommand,
+			RegisterRollbackAllCommand,
 		),
 	)
 }

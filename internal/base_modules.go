@@ -9,12 +9,13 @@ import (
 	"boilerplate/internal/html"
 	"boilerplate/internal/logger"
 	"boilerplate/internal/pgx"
+	"boilerplate/internal/translation"
 	"boilerplate/internal/user"
 	"go.uber.org/fx"
 )
 
 // returns modules that don't listen to some port or don't call cli commands
-func BaseModules() []fx.Option {
+func Modules() []fx.Option {
 	return []fx.Option{
 		framework.NewModule(),
 		logger.NewModule(logger.ModuleConfig{}),
@@ -26,5 +27,6 @@ func BaseModules() []fx.Option {
 		user.NewModule(user.ModuleConfig{}),
 		html.NewModule(html.ModuleConfig{}),
 		blog.NewModule(blog.ModuleConfig{}),
+		translation.NewModule(translation.ModuleConfig{}),
 	}
 }

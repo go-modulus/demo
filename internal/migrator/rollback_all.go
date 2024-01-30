@@ -3,6 +3,7 @@ package migrator
 import (
 	framework2 "boilerplate/internal/framework"
 	"context"
+	"errors"
 	"io/fs"
 	"net/url"
 
@@ -12,25 +13,25 @@ import (
 	"go.uber.org/zap"
 )
 
-type Rollback struct {
+type RollbackAll struct {
 	cfg    *ModuleConfig
 	logger *zap.Logger
 }
 
-func NewRollback(cfg *ModuleConfig, logger *zap.Logger) *Rollback {
-	return &Rollback{cfg: cfg, logger: logger}
+func NewRollbackAll(cfg *ModuleConfig, logger *zap.Logger) *RollbackAll {
+	return &RollbackAll{cfg: cfg, logger: logger}
 }
 
-func RegisterRollbackCommand(
-	command *Rollback,
+func RegisterRollbackAllCommand(
+	command *RollbackAll,
 	commands *framework2.Commands,
 ) error {
 	rootCommand := commands.GetCommandByName("migrator")
 	rootCommand.Subcommands = append(
 		rootCommand.Subcommands,
 		&cli.Command{
-			Name:  "rollback",
-			Usage: "Rollback the last migration",
+			Name:  "rollback-all",
+			Usage: "Rollback all migrations",
 			Action: func(cliContext *cli.Context) error {
 				return command.Invoke(
 					cliContext.Context,
@@ -42,20 +43,26 @@ func RegisterRollbackCommand(
 	return nil
 }
 
-func (c *Rollback) Invoke(ctx context.Context) error {
+func (c *RollbackAll) Invoke(ctx context.Context) error {
 	u, _ := url.Parse(c.cfg.GetDbUrl())
 	db := dbmate.New(u)
-	db.AutoDumpSchema = false
 	db.FS = c.cfg.FS
 	migrationsDir, err := fs.Glob(c.cfg.FS, "internal/*/storage/migration")
 	if err != nil {
 		panic(err)
 	}
 	db.MigrationsDir = migrationsDir
+	db.AutoDumpSchema = false
 
-	err = db.Rollback()
-	if err != nil {
-		panic(err)
+	for {
+		err = db.Rollback()
+		if err != nil {
+			if errors.Is(err, dbmate.ErrNoRollback) {
+				break
+			}
+			panic(err)
+		}
 	}
+
 	return nil
 }

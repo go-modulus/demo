@@ -1,0 +1,65 @@
+{
+    "language": "uk-UA",
+    "messages": [
+        {
+            "id": "Identity is required. Please provide email or nickname or phone.",
+            "message": "Identity is required. Please provide email or nickname or phone.",
+            "translation": ""
+        },
+        {
+            "id": "Gorm error",
+            "message": "Gorm error",
+            "translation": ""
+        },
+        {
+            "id": "User with id {Arg_1} is not found",
+            "message": "User with id {Arg_1} is not found",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Arg_1",
+                    "string": "%[1]s",
+                    "type": "",
+                    "underlyingType": "string",
+                    "argNum": 1
+                }
+            ]
+        },
+        {
+            "id": "Cannot update user {Arg_1}",
+            "message": "Cannot update user {Arg_1}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Arg_1",
+                    "string": "%[1]s",
+                    "type": "",
+                    "underlyingType": "string",
+                    "argNum": 1
+                }
+            ]
+        },
+        {
+            "id": "Email {Arg_1} already exists",
+            "message": "Email {Arg_1} already exists",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Arg_1",
+                    "string": "%[1]s",
+                    "type": "",
+                    "underlyingType": "string",
+                    "argNum": 1
+                }
+            ]
+        },
+        {
+            "id": [
+                "msgTemplate",
+                "Confirmation for {{.User}} {{.Address}}, site {{.Site}}\n\nToken: {{.Token}}"
+            ],
+            "message": "Confirmation for {{.User}} {{.Address}}, site {{.Site}}\n\nToken: {{.Token}}",
+            "translation": ""
+        }
+    ]
+}

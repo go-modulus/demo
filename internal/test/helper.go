@@ -162,7 +162,7 @@ func GetServiceFromContainer[T any]() T {
 
 func Invoke(options ...fx.Option) error {
 	opts := append(
-		internal.BaseModules(),
+		internal.Modules(),
 		fx.WithLogger(
 			func() fxevent.Logger {
 				cfg := zap.NewDevelopmentConfig()

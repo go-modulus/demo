@@ -11,7 +11,7 @@ import (
 func main() {
 	app := fx.New(
 		append(
-			internal.BaseModules(),
+			internal.Modules(),
 
 			router.NewModule(router.ModuleConfig{}),
 			fx.WithLogger(

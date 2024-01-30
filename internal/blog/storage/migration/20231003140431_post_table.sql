@@ -17,4 +17,4 @@ CREATE TABLE IF NOT EXISTS blog."post" (
 
 -- migrate:down
 DROP TABLE blog."post";
-DROP SCHEMA "blog";
+DROP SCHEMA "blog" CASCADE;

@@ -1,0 +1,77 @@
+{
+    "language": "en-GB",
+    "messages": [
+        {
+            "id": "Identity is required. Please provide email or nickname or phone.",
+            "message": "Identity is required. Please provide email or nickname or phone.",
+            "translation": "Identity is required. Please provide email or nickname or phone.",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Gorm error",
+            "message": "Gorm error",
+            "translation": "Gorm error",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "User with id {Arg_1} is not found",
+            "message": "User with id {Arg_1} is not found",
+            "translation": "User with id {Arg_1} is not found",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Arg_1",
+                    "string": "%[1]s",
+                    "type": "",
+                    "underlyingType": "string",
+                    "argNum": 1
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Cannot update user {Arg_1}",
+            "message": "Cannot update user {Arg_1}",
+            "translation": "Cannot update user {Arg_1}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Arg_1",
+                    "string": "%[1]s",
+                    "type": "",
+                    "underlyingType": "string",
+                    "argNum": 1
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Email {Arg_1} already exists",
+            "message": "Email {Arg_1} already exists",
+            "translation": "Email {Arg_1} already exists",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Arg_1",
+                    "string": "%[1]s",
+                    "type": "",
+                    "underlyingType": "string",
+                    "argNum": 1
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": [
+                "msgTemplate",
+                "Confirmation for {{.User}} {{.Address}}, site {{.Site}}\n\nToken: {{.Token}}"
+            ],
+            "message": "Confirmation for {{.User}} {{.Address}}, site {{.Site}}\n\nToken: {{.Token}}",
+            "translation": "Confirmation for {{.User}} {{.Address}}, site {{.Site}}\n\nToken: {{.Token}}",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        }
+    ]
+}
