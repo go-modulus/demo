@@ -6,46 +6,386 @@ package storage
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
+	"time"
 
 	uuid "github.com/gofrs/uuid"
-	null "gopkg.in/guregu/null.v4"
+	"github.com/jackc/pgtype"
 )
 
-type Account struct {
-	ID                 uuid.UUID    `db:"id" json:"id"`
-	Email              null.String  `db:"email" json:"email"`
-	Password           null.String  `db:"password" json:"password"`
-	ConfirmSelector    null.String  `db:"confirm_selector" json:"confirmSelector"`
-	ConfirmVerifier    null.String  `db:"confirm_verifier" json:"confirmVerifier"`
-	Confirmed          bool         `db:"confirmed" json:"confirmed"`
-	AttemptCount       int32        `db:"attempt_count" json:"attemptCount"`
-	LastAttemptAt      sql.NullTime `db:"last_attempt_at" json:"lastAttemptAt"`
-	LockedAt           sql.NullTime `db:"locked_at" json:"lockedAt"`
-	RecoverSelector    null.String  `db:"recover_selector" json:"recoverSelector"`
-	RecoverVerifier    null.String  `db:"recover_verifier" json:"recoverVerifier"`
-	RecoverTokenExpiry sql.NullTime `db:"recover_token_expiry" json:"recoverTokenExpiry"`
-	Oauth2Uid          null.String  `db:"oauth2_uid" json:"oauth2Uid"`
-	Oauth2Provider     null.String  `db:"oauth2_provider" json:"oauth2Provider"`
-	Oauth2AccessToken  null.String  `db:"oauth2_access_token" json:"oauth2AccessToken"`
-	Oauth2RefreshToken null.String  `db:"oauth2_refresh_token" json:"oauth2RefreshToken"`
-	Oauth2Expiry       sql.NullTime `db:"oauth2_expiry" json:"oauth2Expiry"`
-	TotpSecretKey      null.String  `db:"totp_secret_key" json:"totpSecretKey"`
-	SmsPhoneNumber     null.String  `db:"sms_phone_number" json:"smsPhoneNumber"`
-	SmsSeedPhoneNumber null.String  `db:"sms_seed_phone_number" json:"smsSeedPhoneNumber"`
-	RecoveryCodes      null.String  `db:"recovery_codes" json:"recoveryCodes"`
+type IdentityStatus string
+
+const (
+	IdentityStatusNotVerified IdentityStatus = "not_verified"
+	IdentityStatusVerified    IdentityStatus = "verified"
+	IdentityStatusBlocked     IdentityStatus = "blocked"
+)
+
+func (e *IdentityStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = IdentityStatus(s)
+	case string:
+		*e = IdentityStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for IdentityStatus: %T", src)
+	}
+	return nil
 }
 
-type LocalAccount struct {
-	UserID    uuid.UUID    `db:"user_id" json:"userId"`
-	Email     null.String  `db:"email" json:"email"`
-	Nickname  null.String  `db:"nickname" json:"nickname"`
-	Phone     null.String  `db:"phone" json:"phone"`
-	Password  null.String  `db:"password" json:"password"`
-	CreatedAt sql.NullTime `db:"created_at" json:"createdAt"`
+type NullIdentityStatus struct {
+	IdentityStatus IdentityStatus `json:"identityStatus"`
+	Valid          bool           `json:"valid"` // Valid is true if IdentityStatus is not NULL
 }
 
-type RememberToken struct {
-	ID        uuid.UUID `db:"id" json:"id"`
-	AccountID uuid.UUID `db:"account_id" json:"accountId"`
-	Token     string    `db:"token" json:"token"`
+// Scan implements the Scanner interface.
+func (ns *NullIdentityStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.IdentityStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.IdentityStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullIdentityStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.IdentityStatus), nil
+}
+
+func AllIdentityStatusValues() []IdentityStatus {
+	return []IdentityStatus{
+		IdentityStatusNotVerified,
+		IdentityStatusVerified,
+		IdentityStatusBlocked,
+	}
+}
+
+type IdentityType string
+
+const (
+	IdentityTypeEmail    IdentityType = "email"
+	IdentityTypePhone    IdentityType = "phone"
+	IdentityTypeUsername IdentityType = "username"
+)
+
+func (e *IdentityType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = IdentityType(s)
+	case string:
+		*e = IdentityType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for IdentityType: %T", src)
+	}
+	return nil
+}
+
+type NullIdentityType struct {
+	IdentityType IdentityType `json:"identityType"`
+	Valid        bool         `json:"valid"` // Valid is true if IdentityType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullIdentityType) Scan(value interface{}) error {
+	if value == nil {
+		ns.IdentityType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.IdentityType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullIdentityType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.IdentityType), nil
+}
+
+func AllIdentityTypeValues() []IdentityType {
+	return []IdentityType{
+		IdentityTypeEmail,
+		IdentityTypePhone,
+		IdentityTypeUsername,
+	}
+}
+
+type PasswordResetStatus string
+
+const (
+	PasswordResetStatusActive PasswordResetStatus = "active"
+	PasswordResetStatusUsed   PasswordResetStatus = "used"
+)
+
+func (e *PasswordResetStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PasswordResetStatus(s)
+	case string:
+		*e = PasswordResetStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PasswordResetStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPasswordResetStatus struct {
+	PasswordResetStatus PasswordResetStatus `json:"passwordResetStatus"`
+	Valid               bool                `json:"valid"` // Valid is true if PasswordResetStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPasswordResetStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PasswordResetStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PasswordResetStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPasswordResetStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PasswordResetStatus), nil
+}
+
+func AllPasswordResetStatusValues() []PasswordResetStatus {
+	return []PasswordResetStatus{
+		PasswordResetStatusActive,
+		PasswordResetStatusUsed,
+	}
+}
+
+type PasswordStatus string
+
+const (
+	PasswordStatusActive PasswordStatus = "active"
+	PasswordStatusOld    PasswordStatus = "old"
+)
+
+func (e *PasswordStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PasswordStatus(s)
+	case string:
+		*e = PasswordStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PasswordStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPasswordStatus struct {
+	PasswordStatus PasswordStatus `json:"passwordStatus"`
+	Valid          bool           `json:"valid"` // Valid is true if PasswordStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPasswordStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PasswordStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PasswordStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPasswordStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PasswordStatus), nil
+}
+
+func AllPasswordStatusValues() []PasswordStatus {
+	return []PasswordStatus{
+		PasswordStatusActive,
+		PasswordStatusOld,
+	}
+}
+
+type RtStatus string
+
+const (
+	RtStatusActive  RtStatus = "active"
+	RtStatusRevoked RtStatus = "revoked"
+)
+
+func (e *RtStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RtStatus(s)
+	case string:
+		*e = RtStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RtStatus: %T", src)
+	}
+	return nil
+}
+
+type NullRtStatus struct {
+	RtStatus RtStatus `json:"rtStatus"`
+	Valid    bool     `json:"valid"` // Valid is true if RtStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRtStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.RtStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RtStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRtStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RtStatus), nil
+}
+
+func AllRtStatusValues() []RtStatus {
+	return []RtStatus{
+		RtStatusActive,
+		RtStatusRevoked,
+	}
+}
+
+type VerificationAction string
+
+const (
+	VerificationActionTransferNft     VerificationAction = "transfer_nft"
+	VerificationActionConfirmDanaUser VerificationAction = "confirm_dana_user"
+)
+
+func (e *VerificationAction) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VerificationAction(s)
+	case string:
+		*e = VerificationAction(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VerificationAction: %T", src)
+	}
+	return nil
+}
+
+type NullVerificationAction struct {
+	VerificationAction VerificationAction `json:"verificationAction"`
+	Valid              bool               `json:"valid"` // Valid is true if VerificationAction is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVerificationAction) Scan(value interface{}) error {
+	if value == nil {
+		ns.VerificationAction, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VerificationAction.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVerificationAction) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VerificationAction), nil
+}
+
+func AllVerificationActionValues() []VerificationAction {
+	return []VerificationAction{
+		VerificationActionTransferNft,
+		VerificationActionConfirmDanaUser,
+	}
+}
+
+type Identity struct {
+	ID        uuid.UUID      `db:"id" json:"id"`
+	UserID    uuid.UUID      `db:"user_id" json:"userId"`
+	Identity  string         `db:"identity" json:"identity"`
+	Type      IdentityType   `db:"type" json:"type"`
+	Status    IdentityStatus `db:"status" json:"status"`
+	CreatedAt time.Time      `db:"created_at" json:"createdAt"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updatedAt"`
+}
+
+type OneTimePassword struct {
+	Token       string        `db:"token" json:"token"`
+	UserID      uuid.NullUUID `db:"user_id" json:"userId"`
+	UsedAt      sql.NullTime  `db:"used_at" json:"usedAt"`
+	CreatedAt   time.Time     `db:"created_at" json:"createdAt"`
+	ExpiresAt   time.Time     `db:"expires_at" json:"expiresAt"`
+	Email       string        `db:"email" json:"email"`
+	CanResendAt time.Time     `db:"can_resend_at" json:"canResendAt"`
+}
+
+type Password struct {
+	ID           uuid.UUID      `db:"id" json:"id"`
+	UserID       uuid.UUID      `db:"user_id" json:"userId"`
+	PasswordHash string         `db:"password_hash" json:"passwordHash"`
+	Status       PasswordStatus `db:"status" json:"status"`
+	CreatedAt    time.Time      `db:"created_at" json:"createdAt"`
+	UpdatedAt    time.Time      `db:"updated_at" json:"updatedAt"`
+}
+
+type PasswordReset struct {
+	ID        uuid.UUID           `db:"id" json:"id"`
+	UserID    uuid.UUID           `db:"user_id" json:"userId"`
+	Token     string              `db:"token" json:"token"`
+	CreatedAt time.Time           `db:"created_at" json:"createdAt"`
+	UpdatedAt time.Time           `db:"updated_at" json:"updatedAt"`
+	Status    PasswordResetStatus `db:"status" json:"status"`
+}
+
+type RefreshToken struct {
+	Hash      string    `db:"hash" json:"hash"`
+	SessionID uuid.UUID `db:"session_id" json:"sessionId"`
+	UserID    uuid.UUID `db:"user_id" json:"userId"`
+	Status    RtStatus  `db:"status" json:"status"`
+	CreatedAt time.Time `db:"created_at" json:"createdAt"`
+	ExpiresAt time.Time `db:"expires_at" json:"expiresAt"`
+}
+
+type RevokedToken struct {
+	TokenJti string    `db:"token_jti" json:"tokenJti"`
+	Expired  time.Time `db:"expired" json:"expired"`
+}
+
+type SocialAuth struct {
+	ID            uuid.UUID     `db:"id" json:"id"`
+	UserID        uuid.NullUUID `db:"user_id" json:"userId"`
+	ExternalID    string        `db:"external_id" json:"externalId"`
+	ExternalType  string        `db:"external_type" json:"externalType"`
+	Email         string        `db:"email" json:"email"`
+	EmailVerified bool          `db:"email_verified" json:"emailVerified"`
+	FirstName     string        `db:"first_name" json:"firstName"`
+	LastName      string        `db:"last_name" json:"lastName"`
+	Picture       string        `db:"picture" json:"picture"`
+	CreatedAt     time.Time     `db:"created_at" json:"createdAt"`
+	UpdatedAt     time.Time     `db:"updated_at" json:"updatedAt"`
+}
+
+type VerificationCode struct {
+	Code        string             `db:"code" json:"code"`
+	Action      VerificationAction `db:"action" json:"action"`
+	Email       string             `db:"email" json:"email"`
+	UserID      uuid.NullUUID      `db:"user_id" json:"userId"`
+	UsedAt      sql.NullTime       `db:"used_at" json:"usedAt"`
+	Payload     pgtype.JSONB       `db:"payload" json:"payload"`
+	CreatedAt   time.Time          `db:"created_at" json:"createdAt"`
+	ExpiresAt   time.Time          `db:"expires_at" json:"expiresAt"`
+	CanResendAt time.Time          `db:"can_resend_at" json:"canResendAt"`
 }

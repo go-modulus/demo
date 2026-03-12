@@ -251,3 +251,12 @@ func pathMatchUrl(path string, url string) bool {
 	}
 	return true
 }
+
+func GetHttpHandlerContext() context.Context {
+	ctx := context.Background()
+	req := &http.Request{}
+	w := httptest.NewRecorder()
+	ctx = framework.SetHttpRequest(ctx, req)
+	ctx = framework.SetHttpResponseWriter(ctx, w)
+	return ctx
+}

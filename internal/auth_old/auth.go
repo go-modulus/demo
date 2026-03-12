@@ -1,7 +1,7 @@
-package auth
+package auth_old
 
 import (
-	"boilerplate/internal/auth/provider/local"
+	"boilerplate/internal/auth_old/provider/local"
 	"errors"
 	"github.com/go-pkgz/auth"
 	"github.com/go-pkgz/auth/avatar"

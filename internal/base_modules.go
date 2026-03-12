@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"boilerplate/internal/auth"
+	"boilerplate/internal/auth_old"
 	"boilerplate/internal/blog"
 	"boilerplate/internal/cache"
 	"boilerplate/internal/framework"
@@ -23,7 +23,7 @@ func Modules() []fx.Option {
 		pgx.NewModule(pgx.ModuleConfig{}),
 		gorm.NewModule(gorm.ModuleConfig{}),
 		cache.NewModule(cache.ModuleConfig{}),
-		auth.NewModule(auth.ModuleConfig{}),
+		auth_old.NewModule(auth_old.ModuleConfig{}),
 		user.NewModule(user.ModuleConfig{}),
 		html.NewModule(html.ModuleConfig{}),
 		blog.NewModule(blog.ModuleConfig{}),

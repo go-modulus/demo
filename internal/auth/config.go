@@ -1,138 +1,162 @@
 package auth
 
 import (
-	"boilerplate/internal/auth/action"
-	"boilerplate/internal/auth/provider/local"
+	"boilerplate/internal/auth/resolver"
+	"boilerplate/internal/auth/service"
 	"boilerplate/internal/auth/storage"
 	"boilerplate/internal/auth/storage/fixture"
-	"boilerplate/internal/auth/widget"
-	"boilerplate/internal/framework"
-	logger2 "github.com/go-pkgz/auth/logger"
-	"github.com/gorilla/sessions"
+	framework2 "boilerplate/internal/framework"
+	userStorage "boilerplate/internal/user/storage"
+	"strings"
+	"time"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/spf13/viper"
-	"github.com/volatiletech/authboss/v3"
-	"github.com/wader/gormstore/v2"
 	"go.uber.org/fx"
-	"gorm.io/gorm"
-	"time"
 )
 
 type ModuleConfig struct {
-	LocalAccountTable   string `mapstructure:"AUTH_LOCAL_ACCOUNT_TABLE"`
-	TokenTable          string `mapstructure:"AUTH_TOKEN_TABLE"`
-	SessionIdCookieName string `mapstructure:"AUTH_SESSION_ID_COOKIE_NAME"`
+	RefreshTokenName                  string        `mapstructure:"AUTH_RT_NAME"`
+	SecureCookies                     bool          `mapstructure:"AUTH_SECURE_COOKIES"`
+	CookiesDomain                     string        `mapstructure:"AUTH_COOKIES_DOMAIN"`
+	RefreshTokenExpiresIn             time.Duration `mapstructure:"AUTH_RT_EXPIRES_IN"`
+	PrivateKey                        string        `mapstructure:"AUTH_PRIVATE_KEY"`
+	PublicKey                         string        `mapstructure:"AUTH_PUBLIC_KEY"`
+	AccessTokenLifetime               time.Duration `mapstructure:"AUTH_AT_EXPIRES_IN"`
+	CacheEnabled                      bool          `mapstructure:"AUTH_CACHE_ENABLED"`
+	OneTimePasswordTtl                time.Duration `mapstructure:"ONE_TIME_PASSWORD_TTL"`
+	OneTimePasswordAfterPurchasingTtl time.Duration `mapstructure:"ONE_TIME_PASSWORD_AFTER_PURCHASING_TTL"`
+	OneTimePasswordResendTimeout      time.Duration `mapstructure:"ONE_TIME_PASSWORD_RESEND_TIMEOUT"`
+	VerificationCodeTtl               time.Duration `mapstructure:"VERIFICATION_CODE_TTL"`
+	VerificationCodeForDanaUserTtl    time.Duration `mapstructure:"VERIFICATION_CODE_FOR_DANA_USER_TTL"`
+	FrontendHost                      string        `mapstructure:"FRONTEND_HOST"`
+	UsersWithFastTokenRefreshing      string        `mapstructure:"USERS_WITH_FAST_TOKEN_REFRESHING"`
 }
 
-func registerRoutes(
-	auth *Auth,
-	routes *framework.Routes,
-	errorHandler *framework.HttpErrorHandler,
-	loginAction *action.LoginAction,
-) error {
-	authHandler, avatarHandler := auth.service.Handlers()
+func (m *ModuleConfig) GetPrivateKey() string {
+	return m.PrivateKey
+}
 
-	err := action.InitLoginAction(routes, errorHandler, loginAction)
-	if err != nil {
-		return err
-	}
+func (m *ModuleConfig) GetPublicKey() string {
+	return m.PublicKey
+}
 
-	routes.Get(
-		"/auth/google/login",
-		authHandler.ServeHTTP,
-	)
-	routes.Get(
-		"/auth/google/callback",
-		authHandler.ServeHTTP,
-	)
-	routes.Get(
-		"/auth/google/logout",
-		authHandler.ServeHTTP,
-	)
+func (m *ModuleConfig) GetRefreshTokenCookieName() string {
+	return m.RefreshTokenName
+}
 
-	routes.Get(
-		"/auth/local/login",
-		authHandler.ServeHTTP,
-	)
+func (m *ModuleConfig) GetSecureCookies() bool {
+	return m.SecureCookies
+}
 
-	routes.Get(
-		"/avatar/*",
-		avatarHandler.ServeHTTP,
-	)
+func (m *ModuleConfig) GetCookiesDomain() string {
+	return m.CookiesDomain
+}
 
-	return nil
+func (m *ModuleConfig) GetRefreshTokenExpiresIn() time.Duration {
+	return m.RefreshTokenExpiresIn
+}
+
+func (m *ModuleConfig) GetTokenLifetime() time.Duration {
+	return m.AccessTokenLifetime
+}
+
+func (m *ModuleConfig) GetCacheEnabled() bool {
+	return m.CacheEnabled
+}
+
+func (m *ModuleConfig) GetOneTimePasswordTtl() time.Duration {
+	return m.OneTimePasswordTtl
+}
+
+func (m *ModuleConfig) GetOneTimePasswordAfterPurchasingTtl() time.Duration {
+	return m.OneTimePasswordAfterPurchasingTtl
+}
+
+func (m *ModuleConfig) GetOneTimePasswordResendTimeout() time.Duration {
+	return m.OneTimePasswordResendTimeout
+}
+
+func (m *ModuleConfig) GetVerificationCodeTtl() time.Duration {
+	return m.VerificationCodeTtl
+}
+
+func (m *ModuleConfig) GetVerificationCodeForDanaUserTtl() time.Duration {
+	return m.VerificationCodeForDanaUserTtl
+}
+
+func (m *ModuleConfig) GetUsersWithFastTokenRefreshing() []string {
+	return strings.Split(
+		strings.ReplaceAll(
+			m.UsersWithFastTokenRefreshing,
+			" ",
+			"",
+		), ",",
+	)
+}
+
+func (m *ModuleConfig) GetFrontendHost() string {
+	return m.FrontendHost
 }
 
 func ProvidedServices() []interface{} {
 	return []interface{}{
-		NewAuth,
-		local.NewSession,
-		action.NewLoginAction,
-		action.NewCurrentUser,
-		local.NewGormStorage,
-		local.NewProvider,
-		NewAuthGuardMiddleware,
+		service.NewAuthenticator,
+		resolver.NewQueryResolver,
+		service.NewTokenCookie,
+		service.NewTokenParser,
+		service.NewAccountSaver,
+		service.NewAuthToken,
+		service.NewVerificationCode,
+		service.NewOneTimePassword,
 
-		widget.NewCurrentUserWidget,
+		resolver.NewMutationResolver,
 
-		fixture.NewLocalAccountFixture,
-		func(logger framework.Logger) authboss.Logger {
-			return newLogger(logger)
-		},
-		func(cfg *ModuleConfig) *local.ProviderConfig {
-			return &local.ProviderConfig{
-				AccountTable:        cfg.LocalAccountTable,
-				SessionIdCookieName: cfg.SessionIdCookieName,
-			}
-		},
+		fixture.NewRefreshTokenFixture,
+		fixture.NewAuthFixture,
+		fixture.NewRevokedTokenFixture,
+		fixture.NewOneTimePasswordFixture,
+		fixture.NewVerificationCodeFixture,
+
 		func(db *pgxpool.Pool) storage.DBTX {
 			return db
 		},
 		func(db storage.DBTX) *storage.Queries {
 			return storage.New(db)
 		},
-		func(logger framework.Logger) logger2.L {
-			return newLogger(logger)
-		},
-		func(db *gorm.DB) sessions.Store {
-			// initialize and setup cleanup
-			store := gormstore.NewOptions(
-				db,
-				gormstore.Options{
-					TableName:       "auth.storage",
-					SkipCreateTable: false,
-				},
-				[]byte("secret-hash-key"),
-			)
-			// some more settings, see sessions.Options
-			store.SessionOpts.Secure = false
-			store.SessionOpts.HttpOnly = true
-			store.SessionOpts.MaxAge = 60 * 60 * 24 * 60
 
-			// db cleanup every hour
-			// close quit channel to stop cleanup
-			quit := make(chan struct{})
-			go store.PeriodicCleanup(1*time.Hour, quit)
-			return store
-		},
+		func(s *userStorage.Queries) service.UserFinder { return s },
+		func(s *service.OneTimePassword) service.OtpGenerator { return s },
+		func(config *ModuleConfig) service.TokenCookieConfig { return config },
+		func(config *ModuleConfig) service.TokenParserConfig { return config },
+		func(config *ModuleConfig) service.RefreshTokenConfig { return config },
+		func(config *ModuleConfig) service.VerificationCodeConfig { return config },
+		func(config *ModuleConfig) service.OtpConfig { return config },
+		func(config *ModuleConfig) resolver.SendOneTimePasswordConfig { return config },
 	}
 }
 
 func NewModule(config ModuleConfig) fx.Option {
-	return fx.Module(
-		"auth",
-		fx.Provide(
-			append(
-				ProvidedServices(),
-				func(viper *viper.Viper) (*ModuleConfig, error) {
-					err := viper.Unmarshal(&config)
-					if err != nil {
-						return nil, err
-					}
-					return &config, nil
-				},
-			)...,
+	return fx.Options(
+		fx.Decorate(
+			func(a *service.Authenticator) framework2.Authenticator {
+				return a
+			},
 		),
-		fx.Invoke(registerRoutes),
+		fx.Module(
+			"auth",
+			fx.Provide(
+				append(
+					ProvidedServices(),
+					func(viper *viper.Viper) (*ModuleConfig, error) {
+						err := viper.Unmarshal(&config)
+						if err != nil {
+							return nil, err
+						}
+						return &config, nil
+					},
+				)...,
+			),
+		),
 	)
 }

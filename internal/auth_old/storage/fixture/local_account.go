@@ -1,7 +1,7 @@
 package fixture
 
 import (
-	"boilerplate/internal/auth/storage"
+	"boilerplate/internal/auth_old/storage"
 	"context"
 	"github.com/gofrs/uuid"
 )

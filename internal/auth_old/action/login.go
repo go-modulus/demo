@@ -1,7 +1,7 @@
 package action
 
 import (
-	"boilerplate/internal/auth/provider/local"
+	"boilerplate/internal/auth_old/provider/local"
 	"boilerplate/internal/framework"
 	"context"
 	"github.com/ggicci/httpin"

@@ -1,7 +1,7 @@
 package errors
 
 import (
-	"ecs/internal/infra/framework"
+	"boilerplate/internal/framework"
 	"errors"
 )
 

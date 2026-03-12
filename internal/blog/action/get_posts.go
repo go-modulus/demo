@@ -1,7 +1,7 @@
 package action
 
 import (
-	"boilerplate/internal/auth"
+	"boilerplate/internal/auth_old"
 	"boilerplate/internal/blog/storage"
 	"boilerplate/internal/framework"
 	validator "boilerplate/internal/ozzo-validator"
@@ -48,7 +48,7 @@ func NewGetPostsAction(blogDb *storage.Queries) *GetPostsAction {
 }
 
 func InitGetPostsAction(
-	auth *auth.Auth,
+	auth *auth_old.Auth,
 	routes *framework.Routes,
 	errorHandler *framework.HttpErrorHandler,
 	action *GetPostsAction,

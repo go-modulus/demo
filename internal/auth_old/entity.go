@@ -1,4 +1,4 @@
-package auth
+package auth_old
 
 import (
 	"github.com/volatiletech/authboss/v3"

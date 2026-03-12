@@ -1,0 +1,101 @@
+# import { gql } from 'apollo-server-express';
+extend type Query {
+    """
+    Queries for checking access by roles
+    """
+    checkAccessRoleUser: Boolean! @authGuard(role: [User])
+    checkAccessRoleManager: Boolean! @authGuard(role: [Manager])
+    checkAccessRoleUserManager: Boolean! @authGuard(role: [User, Manager])
+
+    """
+    Get email by one time password's token
+
+    Errors:
+    - TokenIssue - if the token is not found or expired or used
+    """
+    getOneTimePasswordEmail(token: String!): String! @authGuard(role: [User])
+}
+
+extend type Mutation {
+    """
+    Logs in the user with a username and password
+
+    Returns a token pair (access and refresh token).
+    In the web it is recommended to avoid getting the refresh token.
+    It will be stored in a cookie.
+
+    The access token is used to authenticate the user in the GraphQL API.
+
+    The refresh token is used to get a new access token when the old one expires.
+
+    Errors:
+    - LoginOrPasswordIsWrong - if the identity is not found or the password is wrong
+    - OldPasswordIsUsed - if the user tries to log in with the last changed password
+    - CannotGenerateToken - if the access token cannot be generated
+    - CannotSaveRefreshToken - if the refresh token cannot be saved into the database
+    - UserNotFound - if the user is not found
+    """
+    directLogin(identity: String!, password: String!): AuthPayload!
+
+    """
+    Generate and send one time password in magic link via email
+
+    Errors:
+    - EmailIsNotValid - if the email is not correct
+    - CannotCreateOneTimePassword - if the one time password cannot be generated
+    - CannotSendEmail - if the one time password cannot send
+    """
+    sendOneTimePassword(email: String!): SendOneTimePasswordResult!
+
+    """
+    Login by one time password's token
+    If account doesn't exist it will be create
+
+    Errors:
+    - TokenIssue - if the token is not found or expired or used
+    - UserNotFound - if the user is not found
+    """
+    loginByOneTimePassword(token: String!): AuthPayload!
+
+    """
+    Logout from system
+    Remove session and cookies
+    """
+    logout: Boolean @authGuard(role: [User])
+
+    """
+    Refresh access token
+
+    Errors:
+    - NotAuthenticated - if the refreshToken is nil and empty cookies
+    - RefreshTokenNotFound - if the refreshToken is not found
+    - UserIsNotFound - if the refreshToken's user is not found
+    - RefreshTokenExpired - if the refreshToken is expired
+    """
+    refreshToken(refreshToken: String): AuthPayload!
+}
+
+directive @authGuard(role: [Role!]!) on FIELD_DEFINITION | MUTATION | QUERY | SUBSCRIPTION
+
+enum Role {
+    Manager
+    User
+    Rcb
+}
+
+type AuthPayload {
+    accessToken: Token!
+    refreshToken: Token!
+}
+
+type SendOneTimePasswordResult {
+    validTill: Int!
+}
+
+type Token {
+    value: String!
+    """
+    Expiration time in seconds since the UNIX epoch
+    """
+    expiresAt: Int!
+}

@@ -1,8 +1,8 @@
-package auth
+package auth_old
 
 import (
-	"boilerplate/internal/auth/context"
-	"boilerplate/internal/auth/provider/local"
+	"boilerplate/internal/auth_old/context"
+	"boilerplate/internal/auth_old/provider/local"
 	"boilerplate/internal/framework"
 	"errors"
 	"net/http"

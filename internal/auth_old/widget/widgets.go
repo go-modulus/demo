@@ -1,8 +1,8 @@
 package widget
 
 import (
-	"boilerplate/internal/auth/action"
-	"boilerplate/internal/auth/widget/template"
+	"boilerplate/internal/auth_old/action"
+	"boilerplate/internal/auth_old/widget/template"
 	"boilerplate/internal/framework"
 	"boilerplate/internal/html/config"
 )

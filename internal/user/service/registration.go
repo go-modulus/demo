@@ -1,7 +1,7 @@
 package service
 
 import (
-	"boilerplate/internal/auth/provider/local"
+	"boilerplate/internal/auth_old/provider/local"
 	"boilerplate/internal/framework"
 	"boilerplate/internal/user/dao"
 	"boilerplate/internal/user/storage"

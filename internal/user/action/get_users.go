@@ -1,8 +1,8 @@
 package action
 
 import (
-	"boilerplate/internal/auth"
-	context2 "boilerplate/internal/auth/context"
+	"boilerplate/internal/auth_old"
+	context2 "boilerplate/internal/auth_old/context"
 	"boilerplate/internal/framework"
 	validator "boilerplate/internal/ozzo-validator"
 	"boilerplate/internal/user/dao"
@@ -42,7 +42,7 @@ func NewGetUsersAction(finder *dao.UserFinder) *GetUsersAction {
 }
 
 func InitGetUsersAction(
-	auth *auth.Auth,
+	auth *auth_old.Auth,
 	routes *framework.Routes,
 	errorHandler *framework.HttpErrorHandler,
 	action *GetUsersAction,

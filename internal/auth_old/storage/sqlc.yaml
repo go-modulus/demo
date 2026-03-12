@@ -31,7 +31,7 @@ overrides:
 
 sql:
   - schema: "migration"
-    queries: "queries"
+    queries: "query"
     engine: "postgresql"
     default_schema: "auth"
     gen:

@@ -1,7 +1,7 @@
 package html
 
 import (
-	"boilerplate/internal/auth/widget"
+	"boilerplate/internal/auth_old/widget"
 	"boilerplate/internal/framework"
 	template2 "boilerplate/internal/html/template"
 	"embed"

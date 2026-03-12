@@ -1,7 +1,7 @@
 package action_test
 
 import (
-	fixture2 "boilerplate/internal/auth/storage/fixture"
+	fixture2 "boilerplate/internal/auth_old/storage/fixture"
 	"boilerplate/internal/framework"
 	"boilerplate/internal/test"
 	"boilerplate/internal/user/action"
