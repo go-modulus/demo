@@ -1,0 +1,65 @@
+## This file is a template for the sqlc configuration file.
+## It is used to generate the final sqlc.yaml file.
+## All anchors will be used from the <ROOT_OF_PROJECT>/sqlc.definition.yaml file.
+## Run make db-sqlc-generate to generate the final sqlc.yaml file.
+sqlc-tmpl:
+  version: "2"
+  options:
+    golang:
+      overrides:
+        *default-overrides
+    graphql:
+      overrides:
+        *default-overrides
+    dataloader:
+      overrides:
+        *default-overrides
+    fixture:
+      overrides:
+        *default-overrides
+  plugins:
+    - <<: *plugin-graphql
+    - <<: *plugin-dataloader
+    - <<: *plugin-fixture
+    - <<: *plugin-golang
+  sql:
+    - schema: "migration"
+      queries: "query"
+      engine: "postgresql"
+      codegen:
+        - <<: *codegen-golang
+          options:
+            <<: *codegen-golang-options
+            default_schema: "blog"
+            overrides:
+              ## Place your module overrides here
+              ##- db_type: "test"
+              ##  go_type: "github.com/shopspring/test"
+              ##  nullable: true
+        - <<: *codegen-graphql
+          options:
+            <<: *codegen-graphql-options
+            default_schema: "blog"
+            package: "github.com/go-modulus/demo/internal/blog/storage"
+            exclude:
+              - "Post.deletedAt"
+              - "Post.updatedAt"
+              - "Post.createdAt"
+              - "Post.authorId"
+
+        - <<: *codegen-fixture
+          options:
+            <<: *codegen-fixture-options
+            default_schema: "blog"
+            model_import: "github.com/go-modulus/demo/internal/blog/storage"
+
+        - <<: *codegen-dataloader
+          options:
+            <<: *codegen-dataloader-options
+            default_schema: "blog"
+            model_import: "github.com/go-modulus/demo/internal/blog/storage"
+            cache:
+              - table: "auth.user_info"
+                type: "lru"
+                ttl: "1m"
+                size: 100

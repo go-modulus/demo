@@ -1,0 +1,59 @@
+## This file is a template for the sqlc configuration file.
+## It is used to generate the final sqlc.yaml file.
+## All anchors will be used from the <ROOT_OF_PROJECT>/sqlc.definition.yaml file.
+## Run make db-sqlc-generate to generate the final sqlc.yaml file.
+sqlc-tmpl:
+  version: "2"
+  options:
+    golang:
+      overrides:
+        *default-overrides
+    dataloader:
+      overrides:
+        *default-overrides
+    fixture:
+      overrides:
+        *default-overrides
+  plugins:
+    - <<: *plugin-dataloader
+    - <<: *plugin-fixture
+    - <<: *plugin-golang
+  sql:
+    - schema: "migration"
+      queries: "query"
+      engine: "postgresql"
+      codegen:
+        - <<: *codegen-golang
+          options:
+            <<: *codegen-golang-options
+            default_schema: "auth"
+            overrides:
+              ## Place your module overrides here
+              ##- db_type: "test"
+              ##  go_type: "github.com/shopspring/test"
+              ##  nullable: true
+        - <<: *codegen-fixture
+          options:
+            <<: *codegen-fixture-options
+            default_schema: "auth"
+            model_import: "github.com/go-modulus/demo/internal/auth/storage"
+
+        - <<: *codegen-dataloader
+          options:
+            <<: *codegen-dataloader-options
+            default_schema: "auth"
+            model_import: "github.com/go-modulus/demo/internal/auth/storage"
+            cache:
+              - table: "auth.user_info"
+                type: "lru"
+                ttl: "1m"
+                size: 100
+            exclude_tables:
+              - "auth.account"
+              - "auth.access_token"
+              - "auth.refresh_token"
+              - "auth.identity"
+              - "auth.credential"
+              - "auth.reset_password"
+              - "auth.reset_password_request"
+              - "auth.session"

@@ -1,45 +1,279 @@
-version: "2"
-overrides:
-  go:
-    overrides:
-      - db_type: "uuid"
-        nullable: true
-        engine: "postgresql"
-        go_type:
-          import: "github.com/gofrs/uuid"
-          package: "uuid"
-          type: "NullUUID"
-      - db_type: "uuid"
-        nullable: false
-        engine: "postgresql"
-        go_type:
-          import: "github.com/gofrs/uuid"
-          package: "uuid"
-          type: "UUID"
-      - db_type: "uuid[]"
-        nullable: true
-        go_type: "github.com/jackc/pgtype.UUIDArray"
-      - db_type: "uuid[]"
-        nullable: false
-        go_type: "github.com/jackc/pgtype.UUIDArray"
-      - db_type: "text"
-        go_type:
-          import: "gopkg.in/guregu/null.v4"
-          package: "null"
-          type: "String"
-        nullable: true
-
+options:
+    dataloader:
+        overrides:
+            - db_type: uuid
+              engine: postgresql
+              go_type:
+                import: github.com/gofrs/uuid
+                package: uuid
+                type: NullUUID
+              gql_type: Uuid
+              nullable: true
+            - db_type: uuid
+              engine: postgresql
+              go_type:
+                import: github.com/gofrs/uuid
+                package: uuid
+                type: UUID
+              gql_type: Uuid
+              nullable: false
+            - db_type: text
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: String
+              gql_type: String
+              nullable: true
+            - db_type: pg_catalog.timestamp
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: timestamp
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: pg_catalog.timestamptz
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: timestamptz
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: pg_catalog.timestamp
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: timestamp
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: pg_catalog.timestamptz
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: timestamptz
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+    fixture:
+        overrides:
+            - db_type: uuid
+              engine: postgresql
+              go_type:
+                import: github.com/gofrs/uuid
+                package: uuid
+                type: NullUUID
+              gql_type: Uuid
+              nullable: true
+            - db_type: uuid
+              engine: postgresql
+              go_type:
+                import: github.com/gofrs/uuid
+                package: uuid
+                type: UUID
+              gql_type: Uuid
+              nullable: false
+            - db_type: text
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: String
+              gql_type: String
+              nullable: true
+            - db_type: pg_catalog.timestamp
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: timestamp
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: pg_catalog.timestamptz
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: timestamptz
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: pg_catalog.timestamp
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: timestamp
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: pg_catalog.timestamptz
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: timestamptz
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+    golang:
+        overrides:
+            - db_type: uuid
+              engine: postgresql
+              go_type:
+                import: github.com/gofrs/uuid
+                package: uuid
+                type: NullUUID
+              gql_type: Uuid
+              nullable: true
+            - db_type: uuid
+              engine: postgresql
+              go_type:
+                import: github.com/gofrs/uuid
+                package: uuid
+                type: UUID
+              gql_type: Uuid
+              nullable: false
+            - db_type: text
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: String
+              gql_type: String
+              nullable: true
+            - db_type: pg_catalog.timestamp
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: timestamp
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: pg_catalog.timestamptz
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: timestamptz
+              go_type:
+                import: gopkg.in/guregu/null.v4
+                package: "null"
+                type: Time
+              gql_type: Time
+              nullable: true
+            - db_type: pg_catalog.timestamp
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: timestamp
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: pg_catalog.timestamptz
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+            - db_type: timestamptz
+              go_type:
+                import: time
+                type: Time
+              gql_type: Time
+plugins:
+    - name: dataloader
+      wasm:
+        sha256: 83d3a855d95a2e0af60e51c0e8d6cc2d092b247596cb0459d5ad1103e50892e1
+        url: https://github.com/debugger84/sqlc-dataloader/releases/download/v0.1.5/sqlc-dataloader.wasm
+    - name: fixture
+      wasm:
+        sha256: aae6eb1e9b271c13f1e81c838e4b6e65f91ae71de0780e328685acd3ae8e1649
+        url: https://github.com/debugger84/sqlc-fixture/releases/download/v0.1.8/sqlc-fixture.wasm
+    - name: golang
+      wasm:
+        sha256: 63bc010efc2929a00709f91dd0821a93882b573396c943f6e955d86bc877c9c7
+        url: https://github.com/debugger84/sqlc-gen-go/releases/download/v1.3.6/sqlc-gen-go.wasm
 sql:
-  - schema: "migration"
-    queries: "query"
-    engine: "postgresql"
-    default_schema: "auth"
-    gen:
-      go:
-        package: "storage"
-        sql_package: "pgx/v4"
-        emit_db_tags: true
-        emit_json_tags: true
-        emit_all_enum_values: true
-        json_tags_case_style: "camel"
-        out: "./"
+    - codegen:
+        - options:
+            default_schema: auth
+            emit_all_enum_values: true
+            emit_db_tags: true
+            emit_json_tags: true
+            json_tags_case_style: camel
+            out: ./
+            overrides: null
+            package: storage
+            sql_package: pgx/v5
+          out: ./
+          plugin: golang
+        - options:
+            default_schema: auth
+            model_import: github.com/go-modulus/demo/internal/auth/storage
+            package: fixture
+            sql_package: pgx/v5
+          out: ./
+          plugin: fixture
+        - options:
+            cache:
+                - size: 100
+                  table: auth.user_info
+                  ttl: 1m
+                  type: lru
+            default_schema: auth
+            exclude_tables:
+                - auth.account
+                - auth.access_token
+                - auth.refresh_token
+                - auth.identity
+                - auth.credential
+                - auth.reset_password
+                - auth.reset_password_request
+                - auth.session
+            model_import: github.com/go-modulus/demo/internal/auth/storage
+            package: dataloader
+            sql_package: pgx/v5
+          out: ./
+          plugin: dataloader
+      engine: postgresql
+      queries: query
+      schema: migration
+version: "2"

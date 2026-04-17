@@ -1,32 +1,24 @@
 -- name: CreatePost :one
-insert into blog."post" (id, title, body, author_id, slug)
-values ($1, $2, $3, $4, $5)
+INSERT INTO blog.post (id, author_id, title, preview, content)
+VALUES (@id::uuid, @author_id::uuid, @title::text, @preview::text, @content::text)
 RETURNING *;
 
--- name: DeletePost :exec
-delete
-from blog."post"
-where id = @id::uuid;
+-- name: FindPost :one
+SELECT *
+FROM blog.post
+WHERE id = @id::uuid;
 
--- name: GetPost :one
-select *
-from blog."post"
-where id = @id::uuid
-LIMIT 1;
-
--- name: ListPosts :many
-select p.*
-from blog."post" as p
-order by p.published_at desc
-limit @count offset @after;
-
--- name: CountPosts :one
-select count(*) as count
-from blog."post" as p;
+-- name: FindPosts :many
+SELECT *
+FROM blog.post
+WHERE status = 'published'
+   or (status = 'draft' and author_id = @author_id::uuid)
+ORDER BY published_at DESC;
 
 -- name: PublishPost :one
-update blog."post"
-set published_at = now(),
-status = 'published'
-where id = @id::uuid
+UPDATE blog.post
+SET status       = 'published',
+    published_at = now()
+WHERE status = 'draft'
+  AND id = @id::uuid
 RETURNING *;

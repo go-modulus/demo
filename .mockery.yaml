@@ -1,4 +1,11 @@
-quiet: False
-all: True
-keeptree: True
-dir: ./internal
+all: false
+recursive: true
+template: testify
+template-data:
+  unroll-variadic: true
+packages:
+#  testproj/internal/testpckg:
+#    config:
+#      pkgname: testpckg_test
+#    interfaces:
+#      InterfaceNameToBeMocked: {}

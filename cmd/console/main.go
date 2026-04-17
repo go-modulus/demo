@@ -1,35 +1,57 @@
 package main
 
 import (
-	"boilerplate/internal/cli"
-	"boilerplate/internal/framework"
-	"boilerplate/internal/logger"
-	"boilerplate/internal/migrator"
-	"context"
+	"github.com/go-modulus/auth"
+	"github.com/go-modulus/auth/providers/email"
+	auth2 "github.com/go-modulus/demo/internal/auth"
+	"github.com/go-modulus/demo/internal/blog"
+	graphql2 "github.com/go-modulus/demo/internal/graphql"
+	"github.com/go-modulus/graphql"
+	"github.com/go-modulus/modulus/captcha"
+	"github.com/go-modulus/modulus/cli"
+	"github.com/go-modulus/modulus/config"
+	"github.com/go-modulus/modulus/http"
+	"github.com/go-modulus/modulus/logger"
+	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/pgx"
+	"github.com/go-modulus/pgx/migrator"
+
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 func main() {
-	openDir := os.DirFS(".")
+	config.LoadDefaultEnv()
+
+	// DO NOT Remove. It will be edited by the `mtools module create` CLI command.
+	modules := []*module.Module{
+		cli.NewModule(
+			cli.SetConfig(
+				cli.ModuleConfig{
+					Version: "0.1.0",
+					Usage:   "Run project commands",
+				},
+			),
+		),
+		logger.NewModule(),
+		pgx.NewModule(),
+		migrator.NewModule(),
+		http.NewModule(
+			http.AddMiddlewareFactoryToPipeline[*auth.Middleware](500),
+		),
+		graphql.NewModule(),
+		graphql2.NewModule(),
+		blog.NewModule(),
+		captcha.NewModule(),
+		auth.NewModule(),
+		auth2.NewModule(),
+		email.NewModule(),
+	}
 
 	app := fx.New(
-
-		framework.NewModule(),
-		logger.NewModule(logger.ModuleConfig{}),
-		cli.NewModule(cli.ModuleConfig{}),
-		migrator.NewModule(migrator.ModuleConfig{FS: openDir}),
-		fx.WithLogger(
-			func(logger *zap.Logger) fxevent.Logger {
-				lg2 := logger.WithOptions(zap.IncreaseLevel(zapcore.WarnLevel))
-
-				return &fxevent.ZapLogger{Logger: lg2}
-			},
-		),
+		module.BuildFx(modules...),
+		logger.FxLoggerOption(),
+		cli.InvokeStartCli(),
 	)
 
-	_ = app.Start(context.Background())
+	app.Run()
 }
