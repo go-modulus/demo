@@ -7,7 +7,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	graphql2 "github.com/go-modulus/auth/graphql"
 	"github.com/go-modulus/auth/providers/email/action"
@@ -16,26 +15,36 @@ import (
 )
 
 // EmailSignUp is the resolver for the emailSignUp field.
-func (r *mutationResolver) EmailSignUp(ctx context.Context, input graphql1.EmailSignUpInput, userInfo model.UserInfo) (graphql2.TokenPair, error) {
+func (r *mutationResolver) EmailSignUp(
+	ctx context.Context,
+	input graphql1.EmailSignUpInput,
+	userInfo model.UserInfo,
+) (graphql2.TokenPair, error) {
 	return r.authResolver.EmailSignUp(ctx, input, userInfo)
 }
 
 // EmailSignIn is the resolver for the emailSignIn field.
-func (r *mutationResolver) EmailSignIn(ctx context.Context, input graphql1.EmailSignInInput) (graphql2.TokenPair, error) {
+func (r *mutationResolver) EmailSignIn(ctx context.Context, input graphql1.EmailSignInInput) (
+	graphql2.TokenPair,
+	error,
+) {
 	return r.authResolver.EmailSignIn(ctx, input)
 }
 
 // RequestResetPassword is the resolver for the requestResetPassword field.
 func (r *mutationResolver) RequestResetPassword(ctx context.Context, email string) (interface{}, error) {
-	panic(fmt.Errorf("not implemented: RequestResetPassword - requestResetPassword"))
+	return "", r.authResolver.RequestResetPassword(ctx, email)
 }
 
 // ConfirmResetPassword is the resolver for the confirmResetPassword field.
-func (r *mutationResolver) ConfirmResetPassword(ctx context.Context, input action.ConfirmResetPasswordInput) (interface{}, error) {
-	panic(fmt.Errorf("not implemented: ConfirmResetPassword - confirmResetPassword"))
+func (r *mutationResolver) ConfirmResetPassword(
+	ctx context.Context,
+	input action.ConfirmResetPasswordInput,
+) (interface{}, error) {
+	return "", r.authResolver.ConfirmResetPassword(ctx, input)
 }
 
 // ChangePassword is the resolver for the changePassword field.
 func (r *mutationResolver) ChangePassword(ctx context.Context, input action.ChangePasswordInput) (interface{}, error) {
-	panic(fmt.Errorf("not implemented: ChangePassword - changePassword"))
+	return "", r.authResolver.ChangePassword(ctx, input)
 }

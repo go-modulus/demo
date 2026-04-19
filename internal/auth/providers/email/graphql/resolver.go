@@ -4,6 +4,7 @@ import (
 	"context"
 
 	authGraphql "github.com/go-modulus/auth/graphql"
+	"github.com/go-modulus/auth/providers/email/action"
 	emailGraphql "github.com/go-modulus/auth/providers/email/graphql"
 	"github.com/go-modulus/demo/internal/auth/graphql"
 	"github.com/go-modulus/demo/internal/auth/storage"
@@ -73,4 +74,18 @@ func (r *Resolver) EmailSignIn(ctx context.Context, input emailGraphql.EmailSign
 	error,
 ) {
 	return r.emailResolver.EmailSignIn(ctx, input)
+}
+
+func (r *Resolver) RequestResetPassword(ctx context.Context, email string) error {
+	_, err := r.emailResolver.RequestResetPassword(ctx, email)
+	return err
+}
+
+func (r *Resolver) ConfirmResetPassword(ctx context.Context, input action.ConfirmResetPasswordInput) error {
+	_, err := r.emailResolver.ConfirmResetPassword(ctx, input)
+	return err
+}
+
+func (r *Resolver) ChangePassword(ctx context.Context, input action.ChangePasswordInput) error {
+	return r.emailResolver.ChangePassword(ctx, input)
 }
