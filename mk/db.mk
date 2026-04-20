@@ -4,7 +4,7 @@
 
 .PHONY: db
 db: ## Run all db commands
-	go install github.com/go-modulus/mtools/cmd/mtools@latest
+	go install github.com/go-modulus/mtools@latest
 	$(MAKE) db-sqlc-generate
 	$(MAKE) db-migrate
 
