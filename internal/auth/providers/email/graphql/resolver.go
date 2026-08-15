@@ -10,11 +10,14 @@ import (
 	"github.com/go-modulus/demo/internal/auth/storage"
 	"github.com/go-modulus/demo/internal/graphql/model"
 	"github.com/go-modulus/modulus/errors"
+	"github.com/go-modulus/modulus/otel"
 	"github.com/go-modulus/modulus/validator"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/gofrs/uuid"
 )
+
+var tracer = otel.Tracer()
 
 type Resolver struct {
 	emailResolver *emailGraphql.Resolver
@@ -73,6 +76,9 @@ func (r *Resolver) EmailSignIn(ctx context.Context, input emailGraphql.EmailSign
 	authGraphql.TokenPair,
 	error,
 ) {
+	ctx, span := tracer.Start(ctx, "emailSignIn")
+	defer span.End()
+
 	return r.emailResolver.EmailSignIn(ctx, input)
 }
 
